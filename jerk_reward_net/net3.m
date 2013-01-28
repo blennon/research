@@ -29,8 +29,8 @@ W3 = [1,1,-1]';
 
 %% Train the network
 
-iters = 3000;   % Number of training iterations
-tm = 100;       % Plot monitor every tm iterations
+iters = 50000;   % Number of training iterations
+tm = 500;       % Plot monitor every tm iterations
 x0 = 0.0;       % starting location of point mass
 xf = 3.0;       % final location of point mass
 sf = 10;        % desired final sequence point
@@ -46,6 +46,10 @@ c1 = @(xdavg) sig(xdavg,c1_start,c1_end,0,xf,xf/8);
 c2_start = log(.1)/(.9*sf); % coeff for .1 reward when .9*sf from sf
 c2_end = log(.1)/(.1*sf);   % coeff for .1 reward when .1*sf from sf
 c2 = @(sdavg) sig(sdavg,c2_start,c2_end,0,sf,sf/8);
+% jerk error coefficients
+cj_start = log(.1)/(.9);
+cj_end = log(.05)/.1;
+cj = @(jdavg) sig(jdavg,cj_start,cj_end,0,1,.1);
 
 % moving average parameters
 sma_coef = .95;     % s_dist moving average coefficient
@@ -55,7 +59,8 @@ x_dist_ma = xf;     % x_dist MA starting value
 target_reward_ma = 0;
 trma_coef = .9;
 jerk_ma = 0;
-jma_coef = .6;
+jma_coef = .9;
+j_dist_ma = 0;
 
 % MONITORING
 jerk_history = [];
@@ -86,12 +91,22 @@ for t=1:iters
         traj = [traj, xt];
         ctrls_used(st,find(ctrls)) = 1;
         
+%         if abs(target_reward_ma - 1.0) < 1e-10 && st == sn && abs(xt-xf) < 1e-10
+%             jerk = norm(diff([x0 x0 x0 traj xt xt xt],3),Inf);
+%             if jerk < jerk_ma
+%                 % reward
+%                 reward = 1;
+%                 jerk_ma = jma_coef * jerk_ma + (1-jma_coef)*jerk;
+%             end
+%         end
+                
         % stop if last point in sequence or xf reached, reward
         if st == sn || abs(xt-xf) < 1e-10
             % reward
             jerk = norm(diff([x0 x0 x0 traj xt xt xt],3),Inf);
+            j_dist_ma = jma_coef*j_dist_ma + (1-jma_coef)*abs(jerk-.1);
             jerk_ma = jma_coef * jerk_ma + (1-jma_coef)*jerk;
-            jerk_reward = jerk;
+            jerk_reward = exp(cj(j_dist_ma)*abs(jerk-.1));
             %if jerk < jerk_ma - .05
             %    jerk_reward = 1/(1+jerk);
             %else
@@ -102,12 +117,14 @@ for t=1:iters
             x_dist_reward = exp(c1(x_dist_ma)*abs(xf-xt));
             s_dist_reward = exp(c2(s_dist_ma)*abs(sf-st));
             target_reward = x_dist_reward*s_dist_reward;
+            %if target_reward < target_reward_ma + .05
+            %    target_reward = 0;
+            %end
             target_reward_ma = trma_coef * target_reward_ma + (1-trma_coef)*target_reward;
-            if target_reward < target_reward_ma
-                target_reward = 0;
-            end
-            reward = max(target_reward - jerk_reward,0);
-            %reward = (1-target_reward_ma)*max(target_reward - target_reward_ma,0) + target_reward_ma*jerk_reward;
+
+            %reward = max(target_reward - jerk_reward,0);
+            reward = target_reward * jerk_reward;
+            %reward = (1-target_reward_ma)*max(target_reward - target_reward_ma,0) + jerk_reward;
             %reward = target_reward;
             
             % adjust weights/probabilities
@@ -133,7 +150,7 @@ for t=1:iters
     % MONITORING
     if mod(t,tm) == 0
         
-        pause(2)
+        %pause(2)
         disp(sprintf('Iteration %d',t))
         
         % plot pdfs
@@ -166,41 +183,53 @@ for t=1:iters
         
         % reward function plots
         figure(3)
-        subplot(7,2,[1,2])
+        subplot(8,2,[1,2])
         plot_ma(reward_history(1,:),20,t)
         title('Reward History MA')
-        subplot(7,2,[3,4])
+        subplot(8,2,[3,4])
         plot_ma(reward_history(2,:),20,t)
         title('xf reward history MA')
-        subplot(7,2,[5,6])
+        subplot(8,2,[5,6])
         plot_ma(reward_history(3,:),20,t)
         title('sf reward history MA')
-        subplot(7,2,[7,8])
+        subplot(8,2,[7,8])
         plot_ma(reward_history(4,:),20,t)
         title('target reward history MA')
-        subplot(7,2,[9,10])
+        subplot(8,2,[9,10])
         plot_ma(reward_history(5,:),20,t)
         title('jerk reward history MA')
-        subplot(7,2,11)
+        subplot(8,2,11)
         x_dist = 0:g:xf;
         plot(x_dist,c1(x_dist));
         hold on;
         plot(x_dist_ma,c1(x_dist_ma),'o');
         hold off;
         title('xf reward decay coef')
-        subplot(7,2,12)
+        subplot(8,2,12)
         plot(x_dist,exp(c1(x_dist_ma)*x_dist))
         title('Current xf reward function')
-        subplot(7,2,13)
+        subplot(8,2,13)
         plot(1:sf,c2(1:sf))
         hold on
         plot(s_dist_ma,c2(s_dist_ma),'o')
         hold off
         title('sf reward decay coef')
-        subplot(7,2,14)
+        subplot(8,2,14)
         s_dist = 0:.1:sf;
         plot(s_dist,exp(c2(s_dist_ma)*s_dist))
         title('Current sf reward function')
+        
+        subplot(8,2,15)
+        x = 0:.05:2;
+        plot(x,cj(x))
+        hold on
+        plot(j_dist_ma,cj(j_dist_ma),'o')
+        hold off
+        title('jerk reward decay coef')
+        subplot(8,2,16)
+        j_dist = 0:.1:2;
+        plot(j_dist,exp(cj(j_dist_ma)*j_dist))
+        title('Current jerk reward function')
         
     end
 end
