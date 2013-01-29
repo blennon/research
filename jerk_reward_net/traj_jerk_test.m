@@ -1,19 +1,26 @@
-dt1 = [.1 .2 .3 .4 .5 .5 .4 .3 .2 .1];
-dt2 = .3 * ones(1,10);
-
-t1 = [0 0 0 cumsum(dt1) 3 3 3];
-t2 = [0 0 0 cumsum(dt2) 3 3 3];
-
-norm(diff([t1],3),Inf)
-norm(diff([t1],3),2)
-norm(diff([t2],3),Inf)
-norm(diff([t2],3),2)
-
 close all;
+clear all;
+clc;
+
+
+%% Jerk control policy
+T = 12;
+x0 = 0;
+xf = 5.4;
+J = 32*(xf-x0)/(T^3);
+jerk = [J*ones(1,T/4),-J*ones(1,T/2),J*ones(1,T/4)];
+
 figure(1)
+subplot(2,2,4)
+plot(jerk)
+subplot(2,2,3)
+accel = cumsum(jerk);
+plot(accel)
+subplot(2,2,2)
+veloc = cumsum(accel);
+plot(veloc)
 subplot(2,2,1)
-plot(t1)
-for i=1:3
-    subplot(2,2,i+1)
-    plot(diff(t1,i))
-end
+pos = cumsum(veloc);
+plot(pos)
+
+norm(diff([x0 x0 x0 pos xf xf xf],3),Inf)
