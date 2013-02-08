@@ -10,18 +10,12 @@ function [ x, ctrls ] = run_net( W1, W2, W3, seqn, n, x_last  )
 % choose a random subset of n controllers based on the learned 'weights'
 % from the sequence node (first) layer to the controllers layer
 ctrl_weights = W1(seqn,:)';
-%rnd_ctrls = unique(ceil(pdfrnd(1:size(W1,2),ctrl_weights,n)));
-%rnd_ctrls(rnd_ctrls == 0) = [];
 
-%rnd_ctrls = pdfrnd2(1:size(W1,2),ctrl_weights,n);
 rnd_ctrls = randsample(size(W1,2),n,true,ctrl_weights);
 ctrls = zeros(size(W1,2),1);
 
 % activate these controllers fully
 ctrls(rnd_ctrls,1) = 1;
-
-% use weighting activation
-%ctrls(rnd_ctrls,1) = W1(seqn,rnd_ctrls);
 
 % use these controllers to turn on alpha motor neurons
 alphamns = W2'*ctrls;
