@@ -117,12 +117,51 @@ def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05):
         for j in range(w):
             go_inds = C[max(i-dist,0):min(i+dist+1,w),max(j-dist,0):min(j+dist+1,w)]
             for go_ind in go_inds[rand(go_inds.shape[0],go_inds.shape[1]) < p]:
-                for gr_ind in xrange(go_ind*n,go_ind*n + 100):
+                for gr_ind in xrange(go_ind*n,go_ind*n + n):
                     connections.append((gr_ind,C[i,j]))
     return connections
 
-def go_to_gr_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 4, p=.025):
-    pass
+def go_to_gr_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.025):
+    '''
+    Implementation of connection matrix from golgi cells to granule cells
+
+    Inspired by T. Yamazaki's code from Yamazaki and Nagao 2012
+    from: https://github.com/blennon/Cerebellum/blob/master/okr.c
+
+    N_go: number of Golgi cells
+    N_gr: number of Granule cells
+    dist: distance in terms of number of Golgi cells (arranged in a grid)
+          to consider connecting a Golgi cell to a cluster of 'n' granule 
+          cells, subject to probability 'p'
+    p   : probability of connecting a Golgi cell to a granule cell cluster
+          within a window (dist x dist)
+    
+    Note: This implementation assumes a square grid of neurons.
+    
+    returns a list of connection tuples [(GO_index,GR_index)]
+    '''
+    connections = set()
+    w = int(N_go**.5)
+    n = N_gr / N_go
+    go_grid = arange(N_go).reshape((w,w))
+    
+    # iterate over every golgi cell in a grid of golgi cells, index by (i,j) coordinates
+    for i in range(w):
+        for j in range(w):
+            
+            # get the single numeral indices of the surrounding golgi cells
+            go_inds = go_grid[max(i-dist,0):min(i+dist+1,w),max(j-dist,0):min(j+dist+1,w)]
+            
+            # randomly choose a subset of these surrounding golgi cells to connect
+            for src_go_ind in go_inds[rand(go_inds.shape[0],go_inds.shape[1]) <= p]:
+                
+                # connect to glomeruli, i.e. the surrounding four granule cell clusters
+                for go_gl_ind in go_grid[i:min(i+2,w),j:min(j+2,w)].flatten():
+                    
+                    # connect to all granule cells in a chosen cluster
+                    for gr_ind in xrange(go_gl_ind*n, go_gl_ind*n + n):
+                        connections.add((src_go_ind,gr_ind))
+    return list(connections)
     
         
 if __name__ == "__main__":
