@@ -72,7 +72,7 @@ class GolgiCellGroup(NeuronGroup):
     
     eqns = Equations('''
     # Membrane equation
-    dV/dt = 1/Cm*(-gl*(V-El)-g_ampa*(V-Eex)-g_nmda*(V-Eex)-g_inh*(V-Einh)-gahp*(V-Eahp)) : mV
+    dV/dt = 1/Cm*(-gl*(V-El)-g_ampa*(V-Eex)-g_nmda*(V-Eex)-gahp*(V-Eahp)) : mV
     
     # After hyperpolarization
     dgahp/dt = -gahp/tau_ahp : nS
@@ -86,8 +86,51 @@ class GolgiCellGroup(NeuronGroup):
     ''')
     
     def __init__(self, N):
-        super(GranuleCellGroup, self).__init__(N, model=GolgiCellGroup.eqns,threshold=GolgiCellGroup.Vth,
+        super(GolgiCellGroup, self).__init__(N, model=GolgiCellGroup.eqns,threshold=GolgiCellGroup.Vth,
                                                reset='V=GolgiCellGroup.El;gahp=GolgiCellGroup.gahp_')
+
+
+def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05):
+    '''
+    Implementation of connection matrix from granule cells to golgi cells
+
+    Direct copy from T. Yamazaki's code from Yamazaki and Nagao 2012
+    from: https://github.com/blennon/Cerebellum/blob/master/okr.c
+
+    N_go: number of Golgi cells
+    N_gr: number of Granule cells
+    dist: distance in terms of number of Golgi cells (arranged in a grid)
+          to consider connecting a cluster of 'n' granule cells to a Golgi
+          cell, subject to probability 'p'
+    p   : probability of connecting a granule cell cluster to a Golgi cell
+    
+    Note: This implementation assumes a square grid of neurons.
+    
+    returns a list of connection tuples [(GR_index,GO_index)]
+    '''
+    gr_go_connections = []
+    w = int(N_go**.5)
+    n = N_gr / N_go
+    for go_x in range(w):
+        for go_y in range(w):
+            go_n = go_y + (w)*go_x
+            for go_dx in range(-dist,dist+1):
+                go_ax = go_x + go_dx
+                if go_ax >= w: go_ax -= w
+                if go_ax < 0: go_ax += w
+                for go_dy in range(-dist,dist+1):
+                    go_ay = go_y + go_dy
+                    if go_ay >= w: go_ay -= w
+                    if go_ay < 0: go_ay += w
+                    go_an = go_ay + (w)*go_ax
+                    if rand() < p:
+                        for i in range(n):
+                            gr_go_connections.append((i+n*go_an,go_n))
+    return gr_go_connections
+
+def go_to_gr_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 4, p=.025):
+    pass
+    
         
 if __name__ == "__main__":
     GR = GranuleCellGroup(1)
