@@ -90,7 +90,7 @@ class GolgiCellGroup(NeuronGroup):
                                                reset='V=GolgiCellGroup.El;gahp=GolgiCellGroup.gahp_')
 
 
-def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05):
+def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05, wrap=False):
     '''
     Implementation of connection matrix from granule cells to golgi cells
 
@@ -103,6 +103,8 @@ def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05):
           to consider connecting a cluster of 'n' granule cells to a Golgi
           cell, subject to probability 'p'
     p   : probability of connecting a granule cell cluster to a Golgi cell
+    wrap: if true, this implements Yamazaki's code where connections can be
+          made from one side of the board to another (pac man style)
     
     Note: This implementation assumes a square grid of neurons.
     
@@ -116,12 +118,18 @@ def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05):
             go_n = go_y + (w)*go_x
             for go_dx in range(-dist,dist+1):
                 go_ax = go_x + go_dx
-                if go_ax >= w: go_ax -= w
-                if go_ax < 0: go_ax += w
+                if wrap:
+                    if go_ax >= w: go_ax -= w
+                    if go_ax < 0: go_ax += w
+                else:
+                    if go_ax >= w or go_ax < 0: continue
                 for go_dy in range(-dist,dist+1):
                     go_ay = go_y + go_dy
-                    if go_ay >= w: go_ay -= w
-                    if go_ay < 0: go_ay += w
+                    if wrap:
+                        if go_ay >= w: go_ay -= w
+                        if go_ay < 0: go_ay += w
+                    else:
+                        if go_ay >= w or go_ay < 0: continue
                     go_an = go_ay + (w)*go_ax
                     if rand() < p:
                         for i in range(n):
