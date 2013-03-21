@@ -1,3 +1,4 @@
+from pylab import *
 from brian import *
 
 class GranuleCellGroup(NeuronGroup):
@@ -90,11 +91,11 @@ class GolgiCellGroup(NeuronGroup):
                                                reset='V=GolgiCellGroup.El;gahp=GolgiCellGroup.gahp_')
 
 
-def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05, wrap=False):
+def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05):
     '''
     Implementation of connection matrix from granule cells to golgi cells
 
-    Direct copy from T. Yamazaki's code from Yamazaki and Nagao 2012
+    Inspired by T. Yamazaki's code from Yamazaki and Nagao 2012
     from: https://github.com/blennon/Cerebellum/blob/master/okr.c
 
     N_go: number of Golgi cells
@@ -103,38 +104,22 @@ def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05, wr
           to consider connecting a cluster of 'n' granule cells to a Golgi
           cell, subject to probability 'p'
     p   : probability of connecting a granule cell cluster to a Golgi cell
-    wrap: if true, this implements Yamazaki's code where connections can be
-          made from one side of the board to another (pac man style)
     
     Note: This implementation assumes a square grid of neurons.
     
     returns a list of connection tuples [(GR_index,GO_index)]
     '''
-    gr_go_connections = []
+    connections = []
     w = int(N_go**.5)
     n = N_gr / N_go
-    for go_x in range(w):
-        for go_y in range(w):
-            go_n = go_y + (w)*go_x
-            for go_dx in range(-dist,dist+1):
-                go_ax = go_x + go_dx
-                if wrap:
-                    if go_ax >= w: go_ax -= w
-                    if go_ax < 0: go_ax += w
-                else:
-                    if go_ax >= w or go_ax < 0: continue
-                for go_dy in range(-dist,dist+1):
-                    go_ay = go_y + go_dy
-                    if wrap:
-                        if go_ay >= w: go_ay -= w
-                        if go_ay < 0: go_ay += w
-                    else:
-                        if go_ay >= w or go_ay < 0: continue
-                    go_an = go_ay + (w)*go_ax
-                    if rand() < p:
-                        for i in range(n):
-                            gr_go_connections.append((i+n*go_an,go_n))
-    return gr_go_connections
+    C = arange(w**2).reshape((w,w))
+    for i in range(w):
+        for j in range(w):
+            go_inds = C[max(i-dist,0):min(i+dist+1,w),max(j-dist,0):min(j+dist+1,w)]
+            for go_ind in go_inds[rand(go_inds.shape[0],go_inds.shape[1]) < p]:
+                for gr_ind in xrange(go_ind*n,go_ind*n + 100):
+                    connections.append((gr_ind,C[i,j]))
+    return connections
 
 def go_to_gr_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 4, p=.025):
     pass
