@@ -14,7 +14,7 @@ class GranuleCellGroup(NeuronGroup):
     Einh = -82. * mvolt          # Inhibitory reversal potential
     Eahp = -82. * mvolt          # After hyperpolarization reversal potential
 
-    gl = 0.42 * nsiemens         # maximum leak conductance
+    gl = 0.43 * nsiemens         # maximum leak conductance
     g_ampa_ = 0.18 * nsiemens    # maximum ampa conductance
     g_nmda_ = 0.025 * nsiemens   # maximum nmda conductance
     g_inh_ = 0.028 * nsiemens    # maximum inhibitory conductance
