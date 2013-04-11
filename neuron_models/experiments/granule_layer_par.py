@@ -19,11 +19,11 @@ def run_net((T,proc_num)):
     # Neurons
     GO = GolgiCellGroup(N_GO)
     GR = GranuleCellGroup(N_GR)
-    PG = PoissonGroup(N_PG, lambda t: 15 * Hz + 30 * Hz * 0.5 * (1 + cos(2 * pi * t * .5 * Hz)) if t > 7000*ms else 15*Hz)
+    PG = PoissonGroup(N_PG, lambda t: 15 * Hz + 30 * Hz * 0.5 * (1 + cos(2 * pi * t * .5 * Hz)) if t > 1000*ms else 15*Hz)
     
     # Synapses
     w_gr_go = .2/(49*(len(GR)/len(GO)))
-    w_go_gr = 10.
+    w_go_gr = 10. * 2
     w_mf_gr = 4.
     S_GO_GR = Synapses(GO,GR,model='w:1',pre='g_inh1+=GR.g_inh_*w_go_gr; g_inh2+=GR.g_inh_*w_go_gr')
     S_GR_GO = Synapses(GR,GO,model='w:1',pre='g_ampa+=GO.g_ampa_*w_gr_go;g_nmda1+=GO.g_ampa_*w_gr_go;g_nmda2+=GO.g_ampa_*w_gr_go')
@@ -46,6 +46,7 @@ def run_net((T,proc_num)):
     return MS_GR.spiketimes
 
 if __name__ == "__main__":
+    out_dir = '/home/bill/research/data/neuron_models/granule_layer/'
     N_GO = 32**2
     N_GR = N_GO * 5**2
     N_PG = N_GR
@@ -54,5 +55,5 @@ if __name__ == "__main__":
     
     pool = multiprocessing.Pool(6)
     
-    results = pool.map(run_net, [(10*second,i) for i in range(24)])
-    cPickle.dump(results, open('granule_layer_par6_24runs_10s_040713','w'))
+    results = pool.map(run_net, [(3*second,i) for i in range(100)])
+    cPickle.dump(results, open(out_dir+'granule_layer_par_100runs_3s_041113','w'))

@@ -56,27 +56,32 @@ class GolgiCellGroup(NeuronGroup):
     '''
     Group of Golgi cells
     '''
-    Vth = -52. * mvolt            # Firing threshold, Volts
-    Cm = 28. * pfarad            # Membrane capacitance
+    Vth = -52. * mvolt          # Firing threshold, Volts
+    Cm = 28. * pfarad           # Membrane capacitance
 
-    El = -55. * mvolt             # leak reversal potential
-    Eex = 0. * mvolt             # Excitatory reversal potential
-    Einh = -82. * mvolt          # Inhibitory reversal potential
-    Eahp = -72.7 * mvolt          # After hyperpolarization reversal potential
+    El = -55. * mvolt           # leak reversal potential
+    Eex = 0. * mvolt            # Excitatory reversal potential
+    Einh = -82. * mvolt         # Inhibitory reversal potential
+    Eahp = -72.7 * mvolt        # After hyperpolarization reversal potential
 
     gl = 2.3 * nsiemens         # maximum leak conductance
-    g_ampa_ = 45.5 * nsiemens    # maximum ampa conductance
-    g_nmda_ = 30. * nsiemens   # maximum nmda conductance
-    gahp_ = 20. * nsiemens        # maximum after hyperpolarization conductance
+    g_ampa_ = 45.5 * nsiemens   # maximum ampa conductance
+    g_nmda_ = 30. * nsiemens    # maximum nmda conductance
+    gahp_ = 20. * nsiemens      # maximum after hyperpolarization conductance
     
-    tau_ampa = 1.5 * msecond     # AMPA time constant
-    tau_nmda1 = 31. * msecond     # NMDA time constant 1
-    tau_nmda2 = 170. * msecond     # NMDA time constant 2    
-    tau_ahp = 5. * msecond       # AHP time constant
+
+    tau_ampa = 2.05 * msecond   # AMPA time constant, 2.05 is approximately equivalent to Yamazaki's 1.5
+                                # Integration methods are sensitive to short time constants.  Yamazaki multiplies
+                                # values that decay by -x/tau by exp(-dt/tau) instead of performing exact integration
+                                # of the differential equations (as BRIAN does).  Yamazaki's method is sensitive to 
+                                # shorter time constants, having greater error the shorter the time constants.
+    tau_nmda1 = 31. * msecond   # NMDA time constant 1
+    tau_nmda2 = 170. * msecond  # NMDA time constant 2    
+    tau_ahp = 5. * msecond      # AHP time constant
     
     eqns = Equations('''
     # Membrane equation
-    dV/dt = 1/Cm*(-gl*(V-El)-(.8*g_ampa+.2*g_nmda)*(V-Eex)-gahp*(V-Eahp)) : mV
+    dV/dt = 1/Cm*(-gl*(V-El)-g_ex*(V-Eex)-gahp*(V-Eahp)) : mV
     
     # After hyperpolarization
     dgahp/dt = -gahp/tau_ahp : nS
@@ -84,9 +89,9 @@ class GolgiCellGroup(NeuronGroup):
     # Glutamate
     dg_ampa/dt = -g_ampa/tau_ampa : nS
     dg_nmda1/dt = -g_nmda1/tau_nmda1 : nS
-    dg_nmda2/dt = -g_nmda1/tau_nmda2 : nS
+    dg_nmda2/dt = -g_nmda2/tau_nmda2 : nS
     g_nmda = .33 * g_nmda1 + .67 * g_nmda2 : nS
-
+    g_ex = .8 * g_ampa + .2 * g_nmda : nS
     ''')
     
     def __init__(self, N, rand_V_init = True):
