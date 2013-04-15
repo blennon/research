@@ -2,6 +2,7 @@ import numba as nb
 from numba.decorators import autojit
 from pylab import *
 from brian import ms
+from scipy.ndimage.filters import convolve1d
 
 def cluster_spike_bins(spike_times, N_GR, N_GO, T):
     '''
@@ -17,18 +18,11 @@ def cluster_spike_bins(spike_times, N_GR, N_GO, T):
         spike_bins[int(n)/R][(times/ms).astype(int)] += 1./R
     return spike_bins
 
-def compute_population_avg_activity(bins, tau=8.3):
-    '''
-    computes an exponentially weighted average (across time) of the
-    bin value for each bin, where more recent samples get higher weight
-    
-    bins: [n_bins, time] ndarray
-    '''
+def compute_population_avg_activity(bins,tau=8.3):
     weight_window = flipud(np.exp(-arange(bins.shape[1])/tau))
-    z = zeros_like(bins)
-    for t in xrange(bins.shape[1]):
-        z[:,t] = (bins[:,:t+1] * weight_window[-(t+1):]).sum(axis=1)
-    return z/tau
+    c = convolve1d(fliplr(bins),weight_window,mode='constant',cval=0.,
+                   axis=1,origin=bins.shape[1]/2-1)
+    return fliplr(c)/tau
 
 @autojit(arg_types=[nb.double[:,:],nb.double[:,:],nb.double[:],nb.double[:]])
 def compute_correlation(spike1,spike2,norm1,norm2):
