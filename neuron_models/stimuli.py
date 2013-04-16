@@ -18,4 +18,11 @@ def triangle_wave(t):
         return -2*(t%1.) + 2. 
     
 def square_wave(t):
-    raise NotImplementedError('Not yet implemented')
+    '''
+    return a square wave with height 1.
+    completes in the interval [0,1]
+    '''
+    if 0 <= t%1. < .5:
+        return 0.
+    else:
+        return 1. 
