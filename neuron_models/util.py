@@ -1,4 +1,5 @@
 import numpy as np
+from brian import *
 
 def cartesian(arrays, out=None):
     """
@@ -49,3 +50,33 @@ def cartesian(arrays, out=None):
         for j in xrange(1, arrays[0].size):
             out[j*m:(j+1)*m,1:] = out[0:m,1:]
     return out
+
+def percent_active_cells(monitor, bin_len):
+    active_bins = zeros(monitor.source.clock.t/ms)
+    for n,spikes in monitor.spiketimes.iteritems():
+        bins = zeros(monitor.source.clock.t/ms)
+        for t in (spikes/ms).astype(int):
+            bins[t-bin_len/2:t+bin_len/2] = 1
+        active_bins += bins
+    return active_bins/len(monitor.source)
+
+def output_spikes_to(flat_file, spike_times):
+    '''
+    save spikes to disk in format:
+    spike_time(int) neuron_number\n
+    
+    spike_times is a dictionary of arrays
+    spiketimes[neuron_number] = array([t1, t2, .. tn])
+    '''
+    spike_tuples = []
+    for ind, times in spike_times.iteritems():
+        for t in (times / ms).astype(int):
+            spike_tuples.append((t,ind))
+    with open(flat_file,'w') as f:
+        for t,i in sorted(spike_tuples):
+            f.write('%s %s\n' % (t,i))
+
+
+
+    
+    
