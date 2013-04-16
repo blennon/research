@@ -51,6 +51,17 @@ class GranuleCellGroup(NeuronGroup):
         if rand_V_init:
             self.V = self.El + (self.Vth - self.El)*rand(N)
 
+    def get_parameters(self):
+        params = {'N':len(self),'Vth':self.Vth,'Cm':self.Cm,'El':self.El,'Eex':self.Eex,
+                  'Einh':self.Einh,'Eahp':self.Eahp,'gl':self.gl,'g_ampa_':self.g_ampa_,
+                  'g_nmda_':self.g_nmda_,'g_inh_':self.g_inh_,'gahp_':self.gahp_,
+                  'tau_ampa':self.tau_ampa,'tau_nmda':self.tau_nmda,'tau_inh1':self.tau_inh1,
+                  'tau_inh2':self.tau_inh2,'tau_ahp':self.tau_ahp,'eqns':self.eqns}
+        return params
+    
+    def save_parameters(self, out_f):
+        for p,v in self.get_parameters().iteritems():
+            out_f.write('%s\t%s\n' % (p,str(v)))
 
 class GolgiCellGroup(NeuronGroup):
     '''
@@ -99,7 +110,18 @@ class GolgiCellGroup(NeuronGroup):
                                                reset='V=GolgiCellGroup.El;gahp=GolgiCellGroup.gahp_')
         if rand_V_init:
             self.V = self.El + (self.Vth - self.El)*rand(N)
-
+            
+    def get_parameters(self):
+        params = {'N':len(self),'Vth':self.Vth,'Cm':self.Cm,'El':self.El,'Eex':self.Eex,
+                  'Einh':self.Einh,'Eahp':self.Eahp,'gl':self.gl,'g_ampa_':self.g_ampa_,
+                  'g_nmda_':self.g_nmda_,'gahp_':self.gahp_,'tau_ampa':self.tau_ampa,
+                  'tau_nmda1':self.tau_nmda1,'tau_nmda2':self.tau_nmda2,
+                  'tau_ahp':self.tau_ahp,'eqns':self.eqns}
+        return params
+    
+    def save_parameters(self, out_f):
+        for p,v in self.get_parameters().iteritems():
+            out_f.write('%s\t%s\n' % (p,str(v)))
 
 def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05, wrap=False):
     '''
@@ -204,18 +226,19 @@ if __name__ == "__main__":
     # Create neuron groups
     N_GO = 32**2
     N_GR = N_GO * 5**2
+    N_PG = N_GR
     GO = GolgiCellGroup(N_GO)
     GR = GranuleCellGroup(N_GR)
-    PG = PoissonGroup(100, lambda t:30 * Hz * (1 + cos(2 * pi * t * .5 * Hz)))
+    PG = PoissonGroup(N_PG, lambda t: 15 * Hz + 30 * Hz * 0.5 * (1 + cos(2 * pi * t * 1.5 * Hz + pi)))
     
     # Create Synapses
     w_gr_go = .2/(49*(len(GR)/len(GO)))
-    w_go_gr = 10.
+    w_go_gr = 20.
     w_mf_gr = 4.
     S_GO_GR = Synapses(GO,GR,model='w:1',pre='g_inh1+=GR.g_inh_*w_go_gr; g_inh2+=GR.g_inh_*w_go_gr')
-    S_GR_GO = Synapses(GR,GO,model='w:1',pre='g_ampa+=GO.g_ampa_*w_gr_go;g_nmda1+=GO.g_nmda_*w_gr_go;g_nmda2+=GO.g_nmda_*w_gr_go')
-    S_PG_GR = Synapses(PG,GR,model='w:1',pre='g_ampa+=GR.g_ampa_*w_mf_gr;g_nmda+=GR.g_nmda_*w_mf_gr')
-    S_PG_GR.connect_random(sparseness=.03)
+    S_GR_GO = Synapses(GR,GO,model='w:1',pre='g_ampa+=GO.g_ampa_*w_gr_go;g_nmda1+=GO.g_ampa_*w_gr_go;g_nmda2+=GO.g_ampa_*w_gr_go')
+    S_PG_GR = Synapses(PG,GR,model='w:1',pre='g_ampa+=GR.g_ampa_*w_mf_gr;g_nmda+=GR.g_ampa_*w_mf_gr')
+    S_PG_GR.connect_one_to_one()
     for src,trg in gr_to_go_connections(len(GO),len(GR)):
         S_GR_GO[src,trg] = 1.
     for src,trg in go_to_gr_connections(len(GO),len(GR)):
@@ -227,18 +250,19 @@ if __name__ == "__main__":
     MS_GO = SpikeMonitor(GO)
     
     # Run simulation
-    run(3000*ms)
+    run(2000*ms)
     
     # Plot
     close('all')
-    figure(1)
-    subplot(311)
-    raster_plot(MS_PG)
+    fig1 = figure(1)
+    ax = fig1.add_subplot(311)
+    plot_raster_firingrate_overlay(MS_PG,range(0,N_GR,N_GR/N_GO),ax)
     title('Poisson Group Raster Plot')
-    subplot(312)
-    raster_plot_subset(MS_GR,range(0,N_GR,N_GR/N_GO))
+    
+    ax = fig1.add_subplot(312)
+    plot_raster_firingrate_overlay(MS_GR,range(0,N_GR,N_GR/N_GO),ax)
     title('Granule Cells Raster Plot')
-    subplot(313)
-    raster_plot(MS_GO)
+    
+    ax = fig1.add_subplot(313)
+    plot_raster_firingrate_overlay(MS_GO,range(0,N_GO),ax)
     title('Golgi Cells Raster Plot')
-    show()
