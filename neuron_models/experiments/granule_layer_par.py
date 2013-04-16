@@ -19,7 +19,7 @@ def run_net((T,proc_num)):
     # Neurons
     GO = GolgiCellGroup(N_GO)
     GR = GranuleCellGroup(N_GR)
-    PG = PoissonGroup(N_PG, lambda t: 15 * Hz + 30 * Hz * 0.5 * (1 + cos(2 * pi * t * .5 * Hz)) if t > 1000*ms else 15*Hz)
+    PG = PoissonGroup(N_PG, lambda t: 15 * Hz + 30 * Hz * 0.5 * (1 + cos(2 * pi * t * 1.5 * Hz + pi)))
     
     # Synapses
     w_gr_go = .2/(49*(len(GR)/len(GO)))
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     gr_to_go = gr_to_go_connections(N_GO,N_GR)
     go_to_gr = go_to_gr_connections(N_GO,N_GR)
     
-    pool = multiprocessing.Pool(6)
+    pool = multiprocessing.Pool(1)
     
-    results = pool.map(run_net, [(3*second,i) for i in range(100)])
+    results = pool.map(run_net, [(2*second,i) for i in range(100)])
     cPickle.dump(results, open(out_dir+'granule_layer_par_100runs_3s_041113','w'))
