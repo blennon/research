@@ -48,3 +48,33 @@ def plot_raster_firingrate_overlay(monitor, inds, ax1):
     raster_plot_subset(monitor,inds,axis=ax1,alpha=.4)
     ax2 = ax1.twinx()
     plot_population_firing_rate(monitor,ax2)
+    
+    
+def plot_raster_across_trials_for(neuron_ind, trials_spikes, ax=None, **plotoptions):
+    neuron_spiketimes, trial_indices = [],[]
+    i = 0
+    for trial in trials_spikes:
+        neuron_spiketimes.append(trial[neuron_ind])
+        trial_indices.append(i*ones_like(trial[neuron_ind]))
+        i += 1
+    neuron_spiketimes = (hstack(neuron_spiketimes)*1000).astype(int)
+    if ax is None:
+        plot(neuron_spiketimes,hstack(trial_indices),'.',mew=0,**plotoptions)
+    else:
+        ax.plot(neuron_spiketimes,hstack(trial_indices),'.',mew=0,**plotoptions)
+        ax.set_ylabel('Trial number')
+        
+def plot_raster_across_trials_with_firing_rate(neuron_ind, trials_spikes, ax1, time_bins):
+    plot_raster_across_trials_for(neuron_ind,trials_spikes, ax=ax1, alpha=.4)
+    ax2 = ax1.twinx()
+    ax2.plot(compute_firing_rate_across_trials_for(neuron_ind, trials_spikes, time_bins),'k')
+    ax2.set_ylabel('Average firing rate (Hz)')
+
+def compute_firing_rate_across_trials_for(neuron_ind, trials_spikes, time_bins, **plotoptions):
+    spike_bins = zeros(time_bins)
+    for trial in trials_spikes:
+        spike_bins[(trial[neuron_ind]*1000).astype(int)] += 1
+    spike_bins /= len(trials_spikes)
+    spike_bins_ = pad(spike_bins,(99,99),'constant',constant_values=(mean(spike_bins[:100]),mean(spike_bins[-100:])))
+    return convolve(spike_bins_,10.*ones(100),'same')[99:-99]
+    
