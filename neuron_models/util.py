@@ -95,6 +95,12 @@ def load_spikes_from(flat_file):
             d[n] = np.array(s)
     return d
 
-
+def compute_firing_rate_across_trials_for(neuron_ind, trials_spikes, time_bins, **plotoptions):
+    spike_bins = zeros(time_bins)
+    for trial in trials_spikes:
+        spike_bins[(trial[neuron_ind]*1000).astype(int)] += 1
+    spike_bins /= len(trials_spikes)
+    spike_bins_ = pad(spike_bins,(99,99),'constant',constant_values=(mean(spike_bins[:100]),mean(spike_bins[-100:])))
+    return convolve(spike_bins_,10.*ones(100),'same')[99:-99]
     
     
