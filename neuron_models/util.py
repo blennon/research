@@ -76,6 +76,24 @@ def output_spikes_to(flat_file, spike_times):
         for t,i in sorted(spike_tuples):
             f.write('%s %s\n' % (t,i))
 
+def load_spikes_from(flat_file):
+    '''
+    loads spikes from flat file and returns
+    a dictionary of arraysc containing spike times
+    d[neuron_number] = array([t1,t2,...,tn])
+    '''
+    with open(flat_file) as inf:
+        d = {}
+        for l in inf.readlines():
+            t,n = l.strip().split(' ')
+            try:
+                d[int(n)].append(int(t)*ms)
+            except KeyError:
+                d[int(n)] = []
+                d[int(n)].append(int(t)*ms)
+        for n,s in d.iteritems():
+            d[n] = np.array(s)
+    return d
 
 
     
