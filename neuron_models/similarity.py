@@ -4,6 +4,45 @@ from pylab import *
 from brian import ms
 from scipy.ndimage.filters import convolve1d
 
+def population_spike_correlation(spikes1,spikes2,N_GR, N_GO, T, tau=8.3):
+    '''
+    computes a similarity measure between two population spike trains
+    
+    spikes1: dictionary {neuron_index:spike_times_array}.  spike times
+    are assumed to be encoded in milliseconds, e.g. .001 is 1 ms.
+    
+    if spikes2 is None, autocorrelation is computed
+    
+    NOTE: This replaces population_spike_similarity() and 
+    compute_correlation() with a faster implementation using
+    numpy
+    '''
+    bins1 = cluster_spike_bins(spikes1,N_GR,N_GO,T)
+    activity1 = compute_population_avg_activity(bins1, tau)
+    norm1 = ((activity1**2).sum(axis=0))**.5
+    activity1 /= norm1[None,...]
+                       
+    if spikes2 is None:
+        activity2, norm2 = activity1.copy(), norm1.copy()
+    else:
+        bins2 = cluster_spike_bins(spikes2,N_GR,N_GO,T)
+        activity2 = compute_population_avg_activity(bins2, tau)
+        norm2 = ((activity2**2).sum(axis=0))**.5
+        activity2 /= norm2[None,...]
+
+    # correlations
+    c = dot(activity1.T,activity2)
+    c1 = tile(c,[1,2])
+    c2 = tile(c,[2,1])
+    s1,s2 = [],[]
+    
+    # average over time per dt
+    for i in xrange(c.shape[0]/2):
+        s2.append(trace(c1,i)/(c.shape[0]))
+        s1.append(trace(c2,-i)/(c.shape[0]))
+        
+    return hstack((flipud(array(s1)),array(s2)[1:]))
+
 def cluster_spike_bins(spike_times, N_GR, N_GO, T):
     '''
     computes the population average activity at each point in time
@@ -76,42 +115,5 @@ def population_spike_similarity(spikes1, spikes2, N_GR, N_GO, T, tau=8.3):
     sim = compute_correlation(z1,z2,norm_z1,norm_z2).mean(axis=0)
     return hstack((sim[T/2+1:T],sim[:T/2]))
 
-def population_spike_correlation(spikes1,spikes2,N_GR, N_GO, T, tau=8.3):
-    '''
-    computes a similarity measure between two population spike trains
-    
-    spikes1: dictionary {neuron_index:spike_times_array}.  spike times
-    are assumed to be encoded in milliseconds, e.g. .001 is 1 ms.
-    
-    if spikes2 is None, autocorrelation is computed
-    
-    NOTE: This replaces population_spike_similarity() and 
-    compute_correlation() with a faster implementation using
-    numpy
-    '''
-    bins1 = cluster_spike_bins(spikes1,N_GR,N_GO,T)
-    activity1 = compute_population_avg_activity(bins1, tau)
-    norm1 = ((activity1**2).sum(axis=0))**.5
-    activity1 /= norm1[None,...]
-                       
-    if spikes2 is None:
-        activity2, norm2 = activity1.copy(), norm1.copy()
-    else:
-        bins2 = cluster_spike_bins(spikes2,N_GR,N_GO,T)
-        activity2 = compute_population_avg_activity(bins2, tau)
-        norm2 = ((activity2**2).sum(axis=0))**.5
-        activity2 /= norm2[None,...]
 
-    # correlations
-    c = dot(activity1.T,activity2)
-    c1 = tile(c,[1,2])
-    c2 = tile(c,[2,1])
-    s1,s2 = [],[]
-    
-    # average over time per dt
-    for i in xrange(c.shape[0]/2):
-        s2.append(trace(c1,i)/(c.shape[0]))
-        s1.append(trace(c2,-i)/(c.shape[0]))
-        
-    return hstack((flipud(array(s1)),array(s2)[1:]))
                 
