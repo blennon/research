@@ -74,5 +74,5 @@ def population_spike_similarity(spikes1, spikes2, N_GR, N_GO, T, tau=8.3):
         z2 = compute_population_avg_activity(spike_bins2, tau)
         norm_z2 = (z2 ** 2).sum(axis=0) **.5
     sim = compute_correlation(z1,z2,norm_z1,norm_z2).mean(axis=0)
-    return hstack((flipud(sim[:T]),sim[:T]))[T/2:T+T/2] # clip and mirror
+    return hstack((sim[T/2+1:T],sim[:T/2]))
                 
