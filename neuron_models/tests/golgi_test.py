@@ -105,6 +105,8 @@ class GolgiTest(unittest.TestCase):
 
     def testMembranePotentialsSimilarity(self):
         self.assertAlmostEqual(norm(self.u1 - self.u2), 0., 2)
+        
+
 
 
 if __name__ == "__main__":
