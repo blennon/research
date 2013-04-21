@@ -34,6 +34,7 @@ def cartesian(arrays, out=None):
            [3, 5, 6],
            [3, 5, 7]])
 
+    SOURCE: http://stackoverflow.com/a/1235363
     """
 
     arrays = [np.asarray(x) for x in arrays]
