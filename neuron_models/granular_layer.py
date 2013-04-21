@@ -1,8 +1,8 @@
 from pylab import *
 from brian import *
-from util import cartesian
+from abstract_neuron_group import AbstractNeuronGroup
 
-class GranuleCellGroup(NeuronGroup):
+class GranuleCellGroup(AbstractNeuronGroup):
     '''
     Group of granule cells
     '''
@@ -58,12 +58,9 @@ class GranuleCellGroup(NeuronGroup):
                   'tau_ampa':self.tau_ampa,'tau_nmda':self.tau_nmda,'tau_inh1':self.tau_inh1,
                   'tau_inh2':self.tau_inh2,'tau_ahp':self.tau_ahp,'eqns':self.eqns}
         return params
-    
-    def save_parameters(self, out_f):
-        for p,v in self.get_parameters().iteritems():
-            out_f.write('%s\t%s\n' % (p,str(v)))
 
-class GolgiCellGroup(NeuronGroup):
+
+class GolgiCellGroup(AbstractNeuronGroup):
     '''
     Group of Golgi cells
     '''
@@ -81,7 +78,7 @@ class GolgiCellGroup(NeuronGroup):
     gahp_ = 20. * nsiemens      # maximum after hyperpolarization conductance
     
 
-    tau_ampa = 2.05 * msecond   # AMPA time constant, 2.05 is approximately equivalent to Yamazaki's 1.5
+    tau_ampa = 1.5 * msecond    # AMPA time constant, 2.05 is approximately equivalent to Yamazaki's 1.5
                                 # Integration methods are sensitive to short time constants.  Yamazaki multiplies
                                 # values that decay by -x/tau by exp(-dt/tau) instead of performing exact integration
                                 # of the differential equations (as BRIAN does).  Yamazaki's method is sensitive to 
