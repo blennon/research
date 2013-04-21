@@ -53,7 +53,7 @@ if __name__ == "__main__":
     gr_to_go = gr_to_go_connections(N_GO,N_GR)
     go_to_gr = go_to_gr_connections(N_GO,N_GR)
     
-    pool = multiprocessing.Pool(1)
+    pool = multiprocessing.Pool(2)
     
-    results = pool.map(run_net, [(2*second,i) for i in range(100)])
+    results = pool.map(run_net, [(2*second,i) for i in range(2)])
     cPickle.dump(results, open(out_dir+'granule_layer_par_100runs_3s_041113','w'))
