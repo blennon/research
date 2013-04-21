@@ -69,10 +69,11 @@ if __name__ == "__main__":
     gr_to_go = gr_to_go_connections(N_GO,N_GR)
     go_to_gr = go_to_gr_connections(N_GO,N_GR)
     
-    pool = multiprocessing.Pool(6)
+    pool = multiprocessing.Pool(2)
 
-    stimuli_names = ['triangle_two_periods','square_two_periods_in_phase','sinusoid_two_periods',
-                     'triangle_one_period','square_one_period_in_phase','sinusoid_one_period']
+    #stimuli_names = ['triangle_two_periods','square_two_periods_in_phase','sinusoid_two_periods',
+    #                 'triangle_one_period','square_one_period_in_phase','sinusoid_one_period']
+    stimuli_names = ['sinusoid_one_period','sinusoid_one_period']
     params = []
     i = 1
     for n in stimuli_names:
@@ -82,14 +83,19 @@ if __name__ == "__main__":
     results = pool.map(run_net, params)
     
     os.makedirs(out_dir)
+    j=0
     for GR_spikes, stim in results:
+        j+=1
+        with open(out_dir+stim+str(j)+'_spikes.pickle','w') as outf:
+            cPickle.dump(GR_spikes, outf)
+            
         close('all')
         # plot and save
         figs = []
         # similarity
         fig2 = figure(2)
-        sim = population_spike_similarity(GR_spikes,GR_spikes,N_GR,N_GO,T)
-        plot(arange(-T/2,T/2),sim)
+        sim = population_spike_correlation(GR_spikes,GR_spikes,N_GR,N_GO,T)
+        plot(arange(-T/2,T/2-1),sim)
         xlabel('time delta')
         ylabel('Similarity')
         title('Granule Cell Similarity Measure')
@@ -100,10 +106,7 @@ if __name__ == "__main__":
                 fig.savefig(out_dir+stim+'fig%s'%i)
             except RuntimeError:
                 pass
-            i += 1       
-            
-        with open(out_dir+stim+'_spikes.pickle','w') as outf:
-            cPickle.dump(GR_spikes, outf)
+            i += 1         
             
     with open(out_dir+'weights','w') as outf:
         outf.write('w_gr_go %s\n'%w_gr_go)
