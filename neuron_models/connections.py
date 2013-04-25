@@ -17,7 +17,7 @@ def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05, wr
     
     Note: This implementation assumes a square grid of neurons.
     
-    returns a list of connection tuples [(GR_index,GO_index)]
+    returns two arrays: pre and post synaptic indices
     '''
     connections = []
     w = int(N_go**.5)
@@ -41,7 +41,7 @@ def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05, wr
             for go_ind in go_inds[rand(go_inds.shape[0],go_inds.shape[1]) < p]:
                 for gr_ind in xrange(go_ind*n,go_ind*n + n):
                     connections.append((gr_ind,go_grid[i,j]))
-    return list(set(connections))
+    return map(array,zip(*set(connections)))
 
 def go_to_gr_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 4, p=.025, wrap=False):
     '''
@@ -60,7 +60,7 @@ def go_to_gr_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 4, p=.025, w
     
     Note: This implementation assumes a square grid of neurons.
     
-    returns a list of connection tuples [(GO_index,GR_index)]
+    returns two arrays: pre and post synaptic indices
     '''
     connections = set()
     w = int(N_go**.5)
@@ -94,4 +94,4 @@ def go_to_gr_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 4, p=.025, w
                     # connect to all granule cells in a chosen cluster
                     for gr_ind in xrange(go_gl_ind*n, go_gl_ind*n + n):
                         connections.add((src_go_ind,gr_ind))
-    return list(connections)
+    return map(array,zip(*(connections)))
