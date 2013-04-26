@@ -1,6 +1,40 @@
 from pylab import *
 from util import cartesian
 
+def gr_to_pkj_connections(N_GO,N_GR,N_PKJ,go_span=4):
+    '''
+    Implementation of connection matrix from granule cells to purkinje cells
+
+    Inspired by T. Yamazaki's code from Yamazaki and Nagao 2012
+    from: https://github.com/blennon/Cerebellum/blob/master/okr.c
+
+    N_GO: number of Golgi cells
+    N_GR: number of Granule cells
+    N_PKJ: number of Purkinje cells
+    go_span: number of rows of GO cells to span when connecting from
+             GR clusters to PKJs (each GR cluster of N_GR/N_GO cells
+             corresponds to one GO).
+    p   : probability of connecting a granule cell cluster to a Golgi cell
+    
+    This assumes a square grid of GO cells.  Each GO has a corresponding
+    cluster of GR cells.  Each GR cells are indexed by what cluster they
+    belong to, e.g. n:n+N_GR/N_GO for the nth GO.
+    
+    returns two arrays: pre and post synaptic indices
+    '''
+    connections = []
+    w_GO = int(N_GO**.5)
+    
+    # arrange GRs into a grid of w_GO rows
+    GR_grid = arange(N_GR).reshape(w_GO,w_GO*N_GR/N_GO)
+    
+    for pkj_ind in range(N_PKJ):
+        n = int(ceil(float(w_GO)/N_PKJ)) # spacing between successive centers of row spans
+        rows = arange(pkj_ind*n-go_span,pkj_ind*n+go_span+1) % w_GO # row spans
+        for gr_ind in hstack(GR_grid[rows,:]):
+            connections.append((gr_ind,pkj_ind))
+    return map(array,zip(*set(connections)))
+
 def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05, wrap=False):
     '''
     Implementation of connection matrix from granule cells to golgi cells

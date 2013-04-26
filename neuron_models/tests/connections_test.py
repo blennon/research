@@ -51,7 +51,15 @@ class ConnectionsTest(unittest.TestCase):
         for i in [0,3,4,15,20,18,19,23,24]: self.assertTrue((i,240) in cxns)
         self.assertFalse((5,240) in cxns)
 
-
+    def test_gr_pkj_connections(self):
+        pre, post = gr_to_pkj_connections(5**2,2**2 * 5**2,3,1)
+        cxns = zip(pre,post)
+        self.assertEqual(len(cxns),3*3*20)
+        for i in [0,80,20]:
+            self.assertTrue((i,0) in cxns)
+        for i in [20,40]:
+            self.assertFalse((i,2) in cxns)
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
