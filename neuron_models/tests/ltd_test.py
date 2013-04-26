@@ -49,7 +49,7 @@ class LTDTest(unittest.TestCase):
         self.assertEquals(self.M_w[0][200],.1*.995)
         self.assertEquals(self.M_w[1][0],.1)
         self.assertEquals(self.M_w[1][100],.1*.995)
-        self.assertEquals(self.M_w[1][150],.1*.995*.995)
+        self.assertEquals(self.M_w[1][150],.1*.995*.995**2)
         self.assertEquals(self.M_w[2][0],.1)
         self.assertEquals(self.M_w[2][150],.1*.995)
 

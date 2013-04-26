@@ -3,8 +3,7 @@ from brian import *
 
 class LTD(SpikeMonitor):
     '''
-    Depress PF-PKJ synapses for GRs that spiked that synapse on
-    PKJs that received CF spike.
+    Implements LTD on PF-PKJ synapses driven by CF activity
     '''
     def __init__(self, IO, GR, PF_PKJ, CF_PKJ, ltd_decay=.995, window=50*ms):
         '''
@@ -44,14 +43,22 @@ class LTD(SpikeMonitor):
             
             # GRs that spiked in the past ltd_bins
             gr_spiked_inds = self.GR.LS[:self.ltd_bins]
-
+            # number of times each gr spiked
+            gr_spike_counts = bincount(gr_spiked_inds)
+            
             # GRs that spiked and synapse on PKJs
             gr_ltd_inds = intersect1d(array(gr_inds),array(gr_spiked_inds))
             if not len(gr_ltd_inds):
                 return
             
-            # modify PF_PKJ synaptic strength
-            self.PF_PKJ.w[gr_ltd_inds,pkj_inds] *= self.ltd_decay
+            # counts of gr spikes for grs undergoing ltd
+            gr_ltd_spike_counts = gr_spike_counts[gr_ltd_inds]
+            
+            # depress PF-PKJ synapse proportionally to the number of
+            # times the PF fired in the past self.ltd_bins
+            for i in unique(gr_ltd_spike_counts):
+                if i == 0: continue
+                self.PF_PKJ.w[gr_ltd_inds[gr_ltd_spike_counts==i],pkj_inds] *= self.ltd_decay**i
 
     @staticmethod
     def presynaptic_indexes(neuron_inds,synapses):
