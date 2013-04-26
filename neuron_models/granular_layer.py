@@ -43,10 +43,10 @@ class GranuleCellGroup(AbstractNeuronGroup):
     g_inh = .43 * g_inh1 + .57 * g_inh2 : nS
     ''')
     
-    def __init__(self, N, rand_V_init = True):
+    def __init__(self, N, rand_V_init = True, **kwargs):
         
         super(GranuleCellGroup, self).__init__(N, model=GranuleCellGroup.eqns,threshold=GranuleCellGroup.Vth,
-                                               reset='V=GranuleCellGroup.El;gahp=GranuleCellGroup.gahp_')
+                                               reset='V=GranuleCellGroup.El;gahp=GranuleCellGroup.gahp_', **kwargs)
 
         if rand_V_init:
             self.V = self.El + (self.Vth - self.El)*rand(N)
