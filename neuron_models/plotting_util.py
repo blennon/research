@@ -24,7 +24,7 @@ def raster_plot_subset(spikes, inds, axis=None, **plotoptions):
         axis.set_ylim(ymax=max(inds))
         axis.set_ylabel('Neuron number')
     
-def plot_population_firing_rate(spikes, n_bins, ax=None):
+def plot_population_firing_rate(spikes, n_bins, tau=25., ax=None):
     '''
     plot the neuron average firing rate for the population
     response
@@ -33,8 +33,11 @@ def plot_population_firing_rate(spikes, n_bins, ax=None):
     for n,n_spike_times in spikes.iteritems():
         spike_bins[(n_spike_times/ms).astype(int)] += 1
     spike_bins /= len(spikes) # per neuron average
-    spike_bins_ = pad(spike_bins,(99,99),'constant',constant_values=(mean(spike_bins[:100]),mean(spike_bins[-100:])))
-    mean_firing_rate = convolve(spike_bins_,10.*ones(100),'same')[99:-99]
+    window = flipud(exp(arange(200)/tau))
+    window /= window.sum()
+    mean_firing_rate = convolve(spike_bins, window)[:spike_bins.shape[0]]*1000
+    #spike_bins_ = pad(spike_bins,(99,99),'constant',constant_values=(mean(spike_bins[:100]),mean(spike_bins[-100:])))
+    #mean_firing_rate = convolve(spike_bins_,10.*ones(100),'same')[99:-99]
     if ax is None:
         plot(mean_firing_rate)
     else:
@@ -48,7 +51,7 @@ def plot_raster_firingrate_overlay(spikes, n_bins, inds, ax1):
     '''
     raster_plot_subset(spikes,inds,axis=ax1,alpha=.4)
     ax2 = ax1.twinx()
-    plot_population_firing_rate(spikes,n_bins,ax2)
+    plot_population_firing_rate(spikes,n_bins,ax=ax2)
     
     
 def plot_raster_across_trials_for(neuron_ind, trials_spikes, ax=None, **plotoptions):
