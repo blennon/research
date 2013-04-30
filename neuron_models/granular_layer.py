@@ -45,8 +45,8 @@ class GranuleCellGroup(AbstractNeuronGroup):
     
     def __init__(self, N, rand_V_init = True, **kwargs):
         
-        super(GranuleCellGroup, self).__init__(N, model=GranuleCellGroup.eqns,threshold=GranuleCellGroup.Vth,
-                                               reset='V=GranuleCellGroup.El;gahp=GranuleCellGroup.gahp_', **kwargs)
+        super(GranuleCellGroup, self).__init__(N, model=self.eqns,threshold=self.Vth,
+                                               reset='V=self.El;gahp=self.gahp_', **kwargs)
 
         if rand_V_init:
             self.V = self.El + (self.Vth - self.El)*rand(N)
@@ -103,8 +103,8 @@ class GolgiCellGroup(AbstractNeuronGroup):
     ''')
     
     def __init__(self, N, rand_V_init = True):
-        super(GolgiCellGroup, self).__init__(N, model=GolgiCellGroup.eqns,threshold=GolgiCellGroup.Vth,
-                                               reset='V=GolgiCellGroup.El;gahp=GolgiCellGroup.gahp_')
+        super(GolgiCellGroup, self).__init__(N, model=self.eqns,threshold=self.Vth,
+                                               reset='V=self.El;gahp=self.gahp_')
         if rand_V_init:
             self.V = self.El + (self.Vth - self.El)*rand(N)
             
