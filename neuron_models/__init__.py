@@ -2,6 +2,7 @@ from abstract_neuron_group import *
 from granular_layer import *
 from purkinje_layer import *
 from molecular_layer import *
+from brainstem_nuclei import *
 from connections import *
 from ltd import *
 from spike_generator_group import *

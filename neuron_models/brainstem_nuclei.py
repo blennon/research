@@ -40,9 +40,9 @@ class InferiorOliveGroup(AbstractNeuronGroup):
     dg_gaba/dt = -g_gaba/tau_gaba : nS
     ''')
     
-    def __init__(self, N, rand_V_init = True):
+    def __init__(self, N, rand_V_init = True, **kwargs):
         
-        super(VestibularNucleusGroup, self).__init__(N, model=self.eqns,threshold=self.Vth,
+        super(InferiorOliveGroup, self).__init__(N, model=self.eqns,threshold=self.Vth,
                                                reset='V=self.El;g_ahp=self.g_ahp_', **kwargs)
         
         if rand_V_init:
@@ -97,13 +97,13 @@ class VestibularNucleusGroup(AbstractNeuronGroup):
     # Glutamate
     dg_ampa/dt = -g_ampa/tau_ampa : nS
     dg_nmda/dt = -g_nmda/tau_nmda : nS
-    g_ex = r_ampa*g_ampa + r_nmda*g_nmda
+    g_ex = r_ampa*g_ampa + r_nmda*g_nmda :nS
     
     # GABA
     dg_gaba/dt = -g_gaba/tau_gaba : nS
     ''')
     
-    def __init__(self, N, rand_V_init = True):
+    def __init__(self, N, rand_V_init = True, **kwargs):
         
         super(VestibularNucleusGroup, self).__init__(N, model=self.eqns,threshold=self.Vth,
                                                reset='V=self.El;g_ahp=self.g_ahp_', **kwargs)
@@ -114,7 +114,7 @@ class VestibularNucleusGroup(AbstractNeuronGroup):
     def get_parameters(self):
         params = {'N':len(self),'Vth':self.Vth,'Cm':self.Cm,'El':self.El,'Eex':self.Eex,
                   'Einh':self.Einh,'Eahp':self.Eahp,'gl':self.gl,'g_ampa_':self.g_ampa_, 
-                  'g_nmda_':self.g_nmda, 'g_gaba_':self.g_gaba_, 'g_ahp_':self.g_ahp_, 
+                  'g_nmda_':self.g_nmda_, 'g_gaba_':self.g_gaba_, 'g_ahp_':self.g_ahp_, 
                   'tau_ampa':self.tau_ampa, 'tau_nmda':self.tau_nmda, 'tau_gaba':self.tau_gaba,
                   'tau_ahp':self.tau_ahp,'I_spont':self.I_spont, 'r_ampa':self.r_ampa, 
                   'r_nmda':self.r_nmda,'eqns':self.eqns
