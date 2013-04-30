@@ -1,9 +1,10 @@
 from pylab import *
 from util import cartesian
 
-def gr_to_pkj_connections(N_GO,N_GR,N_PKJ,go_span=4):
+def gr_to_pkj_connections(N_GO = 32**2,N_GR = 10**2 * 32**2, N_PKJ = 16, go_span=4):
     '''
-    Implementation of connection matrix from granule cells to purkinje cells
+    Implementation of connection matrix from a 2D grid of granule cells to 
+    to a 1D grid of purkinje cells
 
     Inspired by T. Yamazaki's code from Yamazaki and Nagao 2012
     from: https://github.com/blennon/Cerebellum/blob/master/okr.c
