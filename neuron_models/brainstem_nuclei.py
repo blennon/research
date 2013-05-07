@@ -106,7 +106,7 @@ class VestibularNucleusGroup(AbstractNeuronGroup):
     def __init__(self, N, rand_V_init = True, **kwargs):
         
         super(VestibularNucleusGroup, self).__init__(N, model=self.eqns,threshold=self.Vth,
-                                               reset='V=self.El;g_ahp=self.g_ahp_', **kwargs)
+                                               reset='g_ahp=self.g_ahp_', **kwargs)
         
         if rand_V_init:
             self.V = self.El + (self.Vth - self.El)*rand(N)
