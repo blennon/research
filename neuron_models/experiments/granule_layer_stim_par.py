@@ -9,6 +9,7 @@ import os
 import multiprocessing
 import cPickle
 import time
+from scipy.signal import sawtooth
 from brian import *
 from neuron_models import *
 set_global_preferences(useweave=True, usenewpropagate=True, usecodegen=True, usecodegenweave=True)
@@ -27,7 +28,9 @@ def run_net((stimulus_name,T,proc_num)):
                'sinusoid_two_periods':lambda t: stimulus(t,15*Hz,15*Hz,2*pi*Hz,pi,lambda x: 1+cos(x)),
                'triangle_one_period':lambda t: stimulus(t,15*Hz,30*Hz,(1/2.)* Hz,0.,triangle_wave),
                'square_one_period_in_phase':lambda t: stimulus(t,15*Hz,30*Hz,(1/2.)* Hz,0.5,square_wave),
-               'sinusoid_one_period':lambda t: stimulus(t,15*Hz,15*Hz,pi*Hz,pi,lambda x: 1+cos(x))
+               'sinusoid_one_period':lambda t: stimulus(t,15*Hz,15*Hz,pi*Hz,pi,lambda x: 1+cos(x)),
+               'sawtooth_one_period':lambda t: stimulus(t,15*Hz,30*Hz,pi* Hz,0., lambda x: (1+sawtooth(x))/2),
+               'sawtooth_two_periods':lambda t: stimulus(t,15*Hz,30*Hz,2*pi* Hz,0., lambda x: (1+sawtooth(x))/2)
                }
     
     # Neurons
@@ -41,10 +44,8 @@ def run_net((stimulus_name,T,proc_num)):
     S_GR_GO = Synapses(GR,GO,model='w:1',pre='g_ampa+=GO.g_ampa_*w_gr_go;g_nmda1+=GO.g_ampa_*w_gr_go;g_nmda2+=GO.g_ampa_*w_gr_go')
     S_PG_GR = Synapses(PG,GR,model='w:1',pre='g_ampa+=GR.g_ampa_*w_mf_gr;g_nmda+=GR.g_ampa_*w_mf_gr')
     S_PG_GR.connect_one_to_one()
-    for src,trg in gr_to_go:
-        S_GR_GO[src,trg] = 1.
-    for src,trg in go_to_gr:
-        S_GO_GR[src,trg] = 1.
+    S_GR_GO.create_synapses(*gr_to_go)
+    S_GO_GR.create_synapses(*go_to_gr)
     
     # Monitor
     #MS_PG = SpikeMonitor(PG)
@@ -69,11 +70,12 @@ if __name__ == "__main__":
     gr_to_go = gr_to_go_connections(N_GO,N_GR)
     go_to_gr = go_to_gr_connections(N_GO,N_GR)
     
-    pool = multiprocessing.Pool(2)
+    pool = multiprocessing.Pool(4)
 
-    #stimuli_names = ['triangle_two_periods','square_two_periods_in_phase','sinusoid_two_periods',
-    #                 'triangle_one_period','square_one_period_in_phase','sinusoid_one_period']
-    stimuli_names = ['sinusoid_one_period','sinusoid_one_period']
+    stimuli_names = ['triangle_two_periods','square_two_periods_in_phase','sinusoid_two_periods',
+                     'triangle_one_period','square_one_period_in_phase','sinusoid_one_period',
+                     'sawtooth_one_period','sawtooth_two_periods']
+    #stimuli_names = ['sinusoid_one_period','sinusoid_one_period']
     params = []
     i = 1
     for n in stimuli_names:
@@ -86,7 +88,7 @@ if __name__ == "__main__":
     j=0
     for GR_spikes, stim in results:
         j+=1
-        with open(out_dir+stim+str(j)+'_spikes.pickle','w') as outf:
+        with open(out_dir+stim+'_spikes.pickle','w') as outf:
             cPickle.dump(GR_spikes, outf)
             
         close('all')
