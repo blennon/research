@@ -36,7 +36,7 @@ class LTDTest(unittest.TestCase):
         PF_PKJ[0,1] = 1.
         CF_PKJ.w = 0.5
         PF_PKJ.w = 0.1
-        PF_PKJ_LTD = LTD(IO,GR,PF_PKJ,CF_PKJ,.995,ltd_window)
+        LTD = PF_PKJ_LTD(IO,GR,PF_PKJ,CF_PKJ,.995,ltd_window)
         
         self.M_V = StateMonitor(PKJ,'V',record=[0,1])
         self.M_IO_spikes = SpikeMonitor(IO)
