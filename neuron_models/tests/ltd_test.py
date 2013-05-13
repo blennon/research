@@ -12,7 +12,9 @@ from neuron_models import *
 defaultclock.dt = .5*ms
 
 class LTDTest(unittest.TestCase):
-
+    '''
+    This tests CF driven LTD
+    '''
 
     def setUp(self):
         T = 200*ms

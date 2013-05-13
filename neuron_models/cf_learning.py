@@ -109,13 +109,8 @@ class PF_MLI_LTP(CFDrivenLearning):
         
     def propagate(self, spikes):
         '''
-        Depress PF-PKJ synapses for GRs that spiked that synapse on
-        PKJs that received CF spike.
-
-        TO DO: consider dynamic time window so that the same
-               GR spike doesn't get depressed twice due to 
-               serial CF spikes and GR spike still in the same
-               time window
+        Potential PF-MLI synapses for GRs that spiked that synapse on
+        MLIs that received CF spike.
         '''
         if len(spikes):
             # MLIs that received CF spike
