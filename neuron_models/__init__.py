@@ -4,7 +4,7 @@ from purkinje_layer import *
 from molecular_layer import *
 from brainstem_nuclei import *
 from connections import *
-from ltd import *
+from cf_learning import *
 from spike_generator_group import *
 from yamazaki_neuron import *
 from plotting_util import *
