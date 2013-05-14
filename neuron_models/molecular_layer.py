@@ -36,7 +36,7 @@ class BasketCellGroup(AbstractNeuronGroup):
         
         self.eqns = Equations('''
         # Membrane equation
-        dV/dt = 1/Cm*(-gl*(V-El)-g_ampa*(V-Eex)-g_ahp*(V-Eahp)-g_inh*(V-Einh) + I_spont) : mV
+        dV/dt = 1/Cm*(-gl*(V-El)-g_ampa*(V-Eex)-g_ahp*(V-Eahp)-g_inh*(V-Einh) + I) : mV
         
         # After hyperpolarization
         dg_ahp/dt = -g_ahp/tau_ahp : nS
