@@ -130,3 +130,62 @@ def go_to_gr_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 4, p=.025, w
                     for gr_ind in xrange(go_gl_ind*n, go_gl_ind*n + n):
                         connections.add((src_go_ind,gr_ind))
     return map(array,zip(*(connections)))
+
+def connect_mli_mli(syn, dist, syn_prob, dir_prob=.5):
+    '''
+    connects MLIs to MLIs up to a maximum distance of dist with
+    probability syn_prob.  The axons extends unilaterally randomly
+    in one direction or the other with probability dir_prob.
+    
+    directly modifies the Synapses object
+
+    syn: synapses object
+    '''
+    N = len(syn.source)
+    for src in xrange(N):
+        axon_direction = 1
+        if rand() < dir_prob: 
+            axon_direction = -1
+        for d in xrange(1,dist+1):
+            if rand() <= syn_prob:
+                trg = (src + d * axon_direction) % N
+                syn[src,trg] = True
+    return syn
+
+def connect_mli_pkj(syn, pkj_dist, syn_prob, dir_prob=.5):
+    '''
+    connects MLIs to PKJs.  MLIs are grouped by PKJs.  Connects MLIs
+    to PKJs up to a maximum distance of pkj_dist with
+    probability syn_prob.  The axons extends unilaterally randomly
+    in one direction or the other with probability dir_prob.
+
+    directly modifies the Synapses object
+    
+    syn: synapses object
+    '''
+    N_MLI = len(syn.source)
+    N_PKJ = len(syn.target)
+    ratio = int(N_MLI/N_PKJ)
+    for src in xrange(N_MLI):
+        axon_direction = 1
+        if rand() < dir_prob:
+            axon_direction = -1
+        closest_pkj_ind = src/ratio
+        for d in xrange(pkj_dist):
+            if rand() < syn_prob:
+                trg = (closest_pkj_ind + d*axon_direction) % N_PKJ
+                syn[src,trg] = True
+    return syn
+
+def list_connections(syn):
+    '''
+    deprecated
+    
+    syn: Synapses object
+    '''
+    cnxns = []
+    for pre_neuron_ind, syn_inds in enumerate(syn.synapses_pre):
+        if len(syn_inds) == 0: continue
+        post_neuron_inds = syn.postsynaptic.data[array(syn_inds)]
+        cnxns += zip(repeat(pre_neuron_ind, len(syn_inds)), post_neuron_inds)
+    return cnxns
