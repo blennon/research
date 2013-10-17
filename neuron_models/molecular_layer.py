@@ -11,7 +11,7 @@ class MLIGroup(AbstractNeuronGroup):
     Vth = -53. * mvolt           # Firing threshold, Volts -- Midtgaard (1992)
     Cm = 14.6 * pfarad           # Membrane capacitance -- Hausser and Clark (1997)
 
-    El = -65. * mvolt            # leak reversal potential -- derived
+    El = -68. * mvolt            # leak reversal potential -- derived
     Eex = 0. * mvolt             # Excitatory reversal potential -- Carter and Regehr (2002)
     Einh = -82. * mvolt          # Inhibitory reversal potential -- Carter and Regehr (2002)
     Eahp = -82. * mvolt          # After hyperpolarization reversal potential -- derived to match Lachamp et al. (2009)
@@ -21,7 +21,7 @@ class MLIGroup(AbstractNeuronGroup):
     g_inh_ = 4. * nsiemens      # maximum inhibitory conductance -- Carter and Regehr (2002)
     g_ampa_ = 1.3 * nsiemens    # maximum AMPAR mediated synaptic conductance -- Carter and Regehr (2002)
 
-    tau_ahp = 5. * msecond      # AHP time constant -- derived to resemble Lachamp et al. (2009)
+    tau_ahp = 2.5 * msecond      # AHP time constant -- derived to resemble Lachamp et al. (2009)
     tau_inh = 4.6 * msecond      # Inhbitory time constant -- Carter and Regehr (2002)
     tau_ampa = .8 * msecond      # AMPAR unitary EPSC time constant -- Carter and Regehr (2002)
 

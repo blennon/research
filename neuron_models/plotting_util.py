@@ -1,5 +1,6 @@
 from pylab import *
 from brian import *
+from util import *
 
 def raster_plot_subset(spikes, inds, axis=None, **plotoptions):
     '''
@@ -74,5 +75,58 @@ def plot_raster_across_trials_with_firing_rate(neuron_ind, trials_spikes, ax1, t
     ax2.plot(compute_firing_rate_across_trials_for(neuron_ind, trials_spikes, time_bins),'k')
     ax2.set_ylabel('Average firing rate (Hz)')
 
-
+def simpleaxis(ax):
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
     
+def plot_ISI_histogram(ISI_monitor, spike_monitor, rate_monitor, xy, xytext):
+    hist_plot(ISI_monitor, newfigure=False, color='w')
+    mew, std = isi_mean_and_std(spike_monitor)
+    s = 'rate = %0.1f Hz\nCV = %0.2f' % (mean(rate_monitor.rate),std/mew)
+    annotate(s,xy=xy,xytext=xytext,xycoords='data',fontsize=24)
+    tick_params(labelsize=20)
+    xlabel('ISI (ms)', fontsize=20)
+    ylabel('Count', fontsize=20)
+    
+def plot_spike_correlogram(T1, T2, width=20 * ms, bin=1 * ms, T=None, auto_ylim=True):
+    '''
+    MODIFIED from brian.tools.statistics.correlogram
+
+    T1,T2 are ordered arrays of spike times.
+
+    Returns a cross-correlogram with lag in [-width,width] and given bin size.
+    T is the total duration (optional) and should be greater than the duration of T1 and T2.
+    The result is number of coincidences in each bin.
+
+    auto_ylim automatically sets the ylim to be 1.2 times the second greatest value in the correlogram.
+
+    N.B.: units are discarded.
+    '''
+    if (T1==[]) or (T2==[]): # empty spike train
+        return NaN
+    # Remove units
+    width = float(width)
+    T1 = array(T1)
+    T2 = array(T2)
+    i = 0
+    j = 0
+    n = int(ceil(width / bin)) # Histogram length
+    l = []
+    for t in T1:
+        while i < len(T2) and T2[i] < t - width: # other possibility use searchsorted
+            i += 1
+        while j < len(T2) and T2[j] < t + width:
+            j += 1
+        l.extend(T2[i:j] - t)
+    H, _ = histogram(l, bins=arange(2 * n + 1) * bin - n * bin)
+    p = subplot(111)
+    p.plot(linspace(-width*1000,width*1000,H.shape[0]),H,color='k')
+    p.fill_between(linspace(-width*1000,width*1000,H.shape[0]),H,color='k')
+    xlim([-width*1000,width*1000])
+    tick_params(labelsize=16)
+    xlabel('time (ms)',fontsize=20)
+    ylabel('counts',fontsize=20)
+    if auto_ylim:
+        ylim([0,H[:H.shape[0]/2].max()*1.2])

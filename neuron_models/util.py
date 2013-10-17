@@ -104,4 +104,12 @@ def compute_firing_rate_across_trials_for(neuron_ind, trials_spikes, time_bins, 
     spike_bins_ = pad(spike_bins,(99,99),'constant',constant_values=(mean(spike_bins[:100]),mean(spike_bins[-100:])))
     return convolve(spike_bins_,10.*ones(100),'same')[99:-99]
     
-    
+def isi_mean_and_std(monitor):
+    '''
+    compute the mean and variance of interspike intervals
+    of a group of neurons
+    '''
+    isi = []
+    for n_ind, times in monitor.spiketimes.iteritems():
+        isi += list(diff(times)*1000)
+    return mean(isi), var(isi)**.5
