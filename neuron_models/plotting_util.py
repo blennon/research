@@ -81,8 +81,8 @@ def simpleaxis(ax):
     ax.get_xaxis().tick_bottom()
     ax.get_yaxis().tick_left()
     
-def plot_ISI_histogram(ISI_monitor, spike_monitor, rate_monitor, xy, xytext):
-    hist_plot(ISI_monitor, newfigure=False, color='w')
+def plot_ISI_histogram(ISI_monitor, spike_monitor, rate_monitor, xy, xytext, color='w'):
+    hist_plot(ISI_monitor, newfigure=False, color=color)
     mew, std = isi_mean_and_std(spike_monitor)
     s = 'rate = %0.1f Hz\nCV = %0.2f' % (mean(rate_monitor.rate),std/mew)
     annotate(s,xy=xy,xytext=xytext,xycoords='data',fontsize=24)

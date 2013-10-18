@@ -113,3 +113,19 @@ def isi_mean_and_std(monitor):
     for n_ind, times in monitor.spiketimes.iteritems():
         isi += list(diff(times)*1000)
     return mean(isi), var(isi)**.5
+
+def extract_two_spike_trace(V_trace, spiketimes, window, dt):
+    '''
+    This function extracts the voltage trace between the first two spikes plus
+    a small window on either side.
+
+    V_trace: array, voltage trace of the neuron
+    spiketimes: array, list of spike times
+    window: time length (in units of seconds) of trace before and after first and second spikes, 
+    respectively, to extract.
+    dt: the time step of the trace (in units of seconds)
+    '''
+    spike_inds = find(V_trace==0)
+    i1, i2 = spike_inds[0], spike_inds[1]
+    window_len = int(window/dt)
+    return V_trace[i1-window_len:i2+window_len]
