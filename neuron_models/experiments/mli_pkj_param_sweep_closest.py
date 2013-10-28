@@ -1,3 +1,9 @@
+'''
+This script performs a parameter sweep over the weight/conductance values of connections
+among a network of MLIs and PKJs.  It measures the error of the fit of mean and CV of the
+ISIs by finding the single neuron among MLIs and PKJs that is closest to the prototypes
+reported by Hausser and Clark (1997).
+'''
 import datetime
 import os
 import gc
@@ -20,7 +26,7 @@ def run_net((w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj)):
     clear(True)
     gc.collect()
     
-    T = 4000
+    T = 6000
     N_MLI = 160
     N_PKJ = 16
     MLI = MLIGroup(N_MLI)
@@ -35,7 +41,7 @@ def run_net((w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj)):
     connect_mli_pkj(S_MLI_PKJ,pkj_dist=8,syn_prob=.125)
     connect_mli_mli(S_MLI_MLI,dist=80,syn_prob=.0275)
     S_PKJ_MLI[:,:] = 'j/(N_MLI/N_PKJ) == i'
-    S_PKJ_PKJ[:,:] = '(minimum(abs(i-j),abs(abs(i-j)-N_PKJ))<=5) & (i!=j) & (rand()<.5)'
+    S_PKJ_PKJ[:,:] = '(minimum(abs(i-j),abs(abs(i-j)-N_PKJ))<=5) & (i!=j) & (rand()<.25)'
         
     @network_operation(Clock(dt=defaultclock.dt))
     def random_current():
@@ -55,17 +61,17 @@ def run_net((w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj)):
     run(T*msecond)
     print time.time() - start
     
-    mli_mew, mli_std = isi_mean_and_std(MS_MLI)
-    pkj_mew, pkj_std = isi_mean_and_std(MS_PKJ)
+    mli_ind, mli_mean_fr, mli_isi_cv, mli_error = find_closest_match_neuron(MS_MLI, 15., .4)
+    pkj_ind, pkj_mean_fr, pkj_isi_cv, pkj_error = find_closest_match_neuron(MS_PKJ, 35., .49)
     
-    return mean(MR_MLI.rate), mli_std/mli_mew, mean(MR_PKJ.rate), pkj_std/pkj_mew
+    return mli_mean_fr, mli_isi_cv, pkj_mean_fr, pkj_isi_cv
 
 if __name__ == "__main__":
-    pool = multiprocessing.Pool(7)
-    w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj = linspace(0.1,2.,7),linspace(0.,1.,7),linspace(0.0,.2,7),linspace(0.0,1.,7)
+    pool = multiprocessing.Pool(6)
+    w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj = linspace(0.1,2.,10),linspace(0.,1.,10),linspace(0.1,1.,10),linspace(0.1,1.,10)
     results = pool.map(run_net, itertools.product(w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj))
     
-    out_dir = out_dir = '/home/bill/research/data/neuron_models/molecular_layer/mli_pkj_param_sweep/%s/'%datetime.datetime.now().isoformat()
+    out_dir = out_dir = '/home/bill/research/data/neuron_models/molecular_layer/mli_pkj_param_sweep2/%s/'%datetime.datetime.now().isoformat()
     os.makedirs(out_dir)
     
     params = itertools.product(w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj)
