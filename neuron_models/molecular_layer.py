@@ -56,6 +56,9 @@ class MLIGroup(AbstractNeuronGroup):
         self.I = I_spont
         if rand_V_init:
             self.V = self.El + (self.Vth - self.El)*rand(N)
+            
+        if self.clock.dt > .25*ms:
+            warnings.warn('Clock for MLI group should be .25*ms for numerical stability')
 
     def get_parameters(self):
         params = {'N':len(self),'Vth':self.Vth,'Cm':self.Cm,'El':self.El,'Eex':self.Eex,
