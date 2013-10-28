@@ -89,6 +89,15 @@ def plot_ISI_histogram(ISI_monitor, spike_monitor, rate_monitor, xy, xytext, col
     tick_params(labelsize=20)
     xlabel('ISI (ms)', fontsize=20)
     ylabel('Count', fontsize=20)
+
+def plot_neuron_ISI_histogram(spike_monitor, ind, xy=(20,0), nbins=100, color='w'):
+    counts, bins, _ = hist(diff(spike_monitor.spiketimes[ind])*1000, nbins, color=color)
+    mew, std = isi_mean_and_std(spike_monitor,ind)
+    s = 'rate = %0.1f Hz\nCV = %0.2f' % (1000/mew,std/mew)
+    annotate(s,xy=xy,xytext=(bins[int(bins.shape[0]*.5)],counts.max()*.75),xycoords='data',fontsize=24)
+    tick_params(labelsize=20)
+    xlabel('ISI (ms)', fontsize=20)
+    ylabel('Count', fontsize=20)
     
 def plot_spike_correlogram(T1, T2, width=20 * ms, bin=1 * ms, T=None, auto_ylim=True):
     '''

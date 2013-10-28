@@ -104,11 +104,16 @@ def compute_firing_rate_across_trials_for(neuron_ind, trials_spikes, time_bins, 
     spike_bins_ = pad(spike_bins,(99,99),'constant',constant_values=(mean(spike_bins[:100]),mean(spike_bins[-100:])))
     return convolve(spike_bins_,10.*ones(100),'same')[99:-99]
     
-def isi_mean_and_std(monitor):
+def isi_mean_and_std(monitor, ind=None):
     '''
     compute the mean and variance of interspike intervals
-    of a group of neurons
+    for neuron 'ind'.  If ind is None, compute for the entire
+    group of neurons
     '''
+    if ind is not None:
+        isi = list(diff(monitor.spiketimes[ind])*1000)
+        return mean(isi), var(isi)**.5
+    
     isi = []
     for n_ind, times in monitor.spiketimes.iteritems():
         isi += list(diff(times)*1000)
@@ -129,3 +134,17 @@ def extract_two_spike_trace(V_trace, spiketimes, window, dt):
     i1, i2 = spike_inds[0], spike_inds[1]
     window_len = int(window/dt)
     return V_trace[i1-window_len:i2+window_len]
+
+def find_closest_match_neuron(spike_monitor,trg_fr,trg_cv):
+    '''
+    Given a spike_monitor and target firing rates and ISI CV,
+    find the neuron whose firing rate and ISI CV is closest.
+
+    Returns (neuron index, firing rate, ISI CV, error)
+    '''
+    l = []
+    for i in range(len(spike_monitor.spiketimes)):
+        mean, std = isi_mean_and_std(spike_monitor,i)
+        fr, cv = 1000/mean, std/mean
+        l.append((i,fr,cv,abs(fr-trg_fr)/trg_fr+abs(cv-trg_cv)/trg_cv))
+    return sorted(l, key=lambda x: x[3])[0]
