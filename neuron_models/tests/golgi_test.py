@@ -7,7 +7,7 @@ import unittest
 from pylab import *
 from brian import *
 from neuron_models import *
-defaultclock.dt = 1.*ms
+defaultclock.dt = .5*ms
 
 class GolgiTest(unittest.TestCase):
     '''
@@ -16,17 +16,18 @@ class GolgiTest(unittest.TestCase):
     '''
 
     def test_model_equivalency(self):
+        T = 200*msecond
         # spike train meant to cause neurons to spike
-        spikes = rand(200)
-        spikes[spikes>.4] = 1.
-        spikes[spikes<=.4] = 0.
+        spikes = rand(int(T/defaultclock.dt))
+        spikes[spikes>.5] = 1.
+        spikes[spikes<=.5] = 0.
         
         conn_weight_gogr = 2./(49.*100)
         
         # Yamazaki implementation
         self.YGO = YamazakiNeuron(-52.,28.,-55.,0.,0.,-72.7,2.3,45.5,0.0,
                                   20.,array([.8,.2*.33,.2*.67]),array([0.0]),
-                                  array([1.5,31.,170.]),None,5.,0.,1.)  
+                                  array([1.5,31.,170.]),None,5.,0.,defaultclock.dt/ms)  
         
         # run Yamazaki implementation
         GO_spikes = []
@@ -41,12 +42,16 @@ class GolgiTest(unittest.TestCase):
         GO.gahp = 0. * nsiemens
         
         # run BRIAN Implementation
-        GR = SpikeGeneratorGroup(1,[(0,t * ms) for t in nonzero(spikes)[0]])
+        GR = SpikeGeneratorGroup(1,[(0,t*defaultclock.dt) for t in nonzero(spikes)[0]])
         S_GR_GO = Synapses(GR,GO,model='w:1',pre='g_ampa+=GO.g_ampa_*conn_weight_gogr;g_nmda1+=GO.g_ampa_*conn_weight_gogr;g_nmda2+=GO.g_ampa_*conn_weight_gogr')
         S_GR_GO.connect_one_to_one()
         M_V = StateMonitor(GO,'V',record=0)
         
         run(200*ms)
+        
+        #M_V.plot()
+        #plot(M_V.times,array(GO_V[:-1])*mV)
+        #show()
         
         self.assertAlmostEqual(norm(array(GO_V)[:-1] - M_V[0]/mV), 0., 10)
         
