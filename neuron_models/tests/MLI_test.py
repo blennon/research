@@ -11,20 +11,45 @@ defaultclock.dt = .25*ms
 
 class MLITest(unittest.TestCase):      
 
-    def test_parameters(self):
-        MLI = MLIGroup(2)
-        params = MLI.get_parameters()
-        self.assertEquals(params['N'], 2)
-        self.assertEquals(params['Vth'], -53. * mV)
-        self.assertEquals(params['Cm'], 14.6 * pF)
-        self.assertEquals(params['gl'], 1.6 * nS)
-        self.assertEquals(params['El'], -68. * mV)
-        self.assertEquals(params['g_ampa_'], 1.3 * nS)
-        self.assertEquals(params['Eex'], 0. * mV)
-        self.assertEquals(params['tau_ampa'], .8 * ms)
-        self.assertEquals(params['g_ahp_'], 50. * nS)
-        self.assertEquals(params['Eahp'], -82. * mV)
-        self.assertEquals(params['tau_ahp'], 2.5 * ms)
+    def test_model_equivalency(self):
+        T = 200*msecond
+        # spike train meant to cause neurons to spike
+        spikes = rand(int(T/defaultclock.dt))
+        spikes[spikes>.95] = 1.
+        spikes[spikes<=.95] = 0.
+        
+        # Yamazaki implementation
+        self.YMLI = YamazakiNeuron(-53.,14.6,-68.,0.,-82.,-82.,1.6,1.3,4.,
+                                  50.,array([1.]),array([1.0]),
+                                  array([.8]),array([4.6]),2.5,0.,defaultclock.dt/ms)  
+        
+        conn_weight_gogr = 1.
+        
+        # run Yamazaki implementation
+        MLI_spikes = []
+        MLI_V = [self.YMLI.u]
+        for s in spikes:
+            MLI_spikes.append(self.YMLI.update(s,0,conn_weight_gogr,0.,reset_V=False))
+            MLI_V.append(self.YMLI.u)
+        
+        # BRIAN Implementation
+        MLI = MLIGroup(1)
+        MLI.V = MLI.El
+        MLI.gahp = 0. * nsiemens
+        
+        # run BRIAN Implementation
+        GR = SpikeGeneratorGroup(1,[(0,t*defaultclock.dt) for t in nonzero(spikes)[0]])
+        S_GR_MLI = Synapses(GR,MLI,model='w:1',pre='g_ampa+=MLI.g_ampa_*conn_weight_gogr')
+        S_GR_MLI.connect_one_to_one()
+        M_V = StateMonitor(MLI,'V',record=0)
+        
+        run(200*ms)
+        
+        M_V.plot()
+        plot(M_V.times,array(MLI_V[:-1])*mV,color='g')
+        show()
+        
+        self.assertAlmostEqual(norm(array(MLI_V)[:-1] - M_V[0]/mV), 0., 10)
         
 
 if __name__ == "__main__":
