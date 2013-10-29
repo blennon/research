@@ -44,7 +44,7 @@ class GranuleCellGroup(AbstractNeuronGroup):
 
         self.eqns = Equations('''
         # Membrane equation
-        dV/dt = 1/Cm*(-gl*(V-El)-(.88*g_ampa+.12*g_nmda)*(V-Eex)-g_inh*(V-Einh)-gahp*(V-Eahp)) : mV
+        dV/dt = 1/Cm*(-gl*(V-El)-g_ex*(V-Eex)-g_inh*(V-Einh)-gahp*(V-Eahp)) : mV
         
         # After hyperpolarization
         dgahp/dt = -gahp/tau_ahp : nS
@@ -52,6 +52,7 @@ class GranuleCellGroup(AbstractNeuronGroup):
         # Glutamate
         dg_ampa/dt = -g_ampa/tau_ampa : nS
         dg_nmda/dt = -g_nmda/tau_nmda : nS
+        g_ex = .88*g_ampa + .12*g_nmda : nS
         
         # GABA
         dg_inh1/dt = -g_inh1/tau_inh1 : nS
@@ -109,7 +110,7 @@ class GolgiCellGroup(AbstractNeuronGroup):
          
         self.eqns = Equations('''
         # Membrane equation
-        dV/dt = 1/Cm*(-gl*(V-self.El)-g_ex*(V-Eex)-gahp*(V-Eahp)) : mV
+        dV/dt = 1/Cm*(-gl*(V-El)-g_ex*(V-Eex)-gahp*(V-Eahp)) : mV
         
         # After hyperpolarization
         dgahp/dt = -gahp/tau_ahp : nS
