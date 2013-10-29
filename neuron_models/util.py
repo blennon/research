@@ -157,5 +157,7 @@ def adjust_tau(dt, tau):
     Y&N (2012) implement the decay multiplicatively by exp(-dt/tau) whereas BRIAN
     implements it as (1 - dt/tau), the first order Taylor series approximation to 
     the exponential.
+    
+    as dt gets bigger, the error between these two gets larger.
     '''
     return dt/(1-exp(-dt/tau))
