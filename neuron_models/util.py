@@ -148,3 +148,14 @@ def find_closest_match_neuron(spike_monitor,trg_fr,trg_cv):
         fr, cv = 1000/mean, std/mean
         l.append((i,fr,cv,abs(fr-trg_fr)/trg_fr+abs(cv-trg_cv)/trg_cv))
     return sorted(l, key=lambda x: x[3])[0]
+
+def adjust_tau(dt, tau):
+    '''
+    adjusts the synaptic conductance time constant reported by Yamazaki and Nagao (2012)
+    to be implemented equivalently by BRIAN simulator
+
+    Y&N (2012) implement the decay multiplicatively by exp(-dt/tau) whereas BRIAN
+    implements it as (1 - dt/tau), the first order Taylor series approximation to 
+    the exponential.
+    '''
+    return dt/(1-exp(-dt/tau))

@@ -29,14 +29,14 @@ class YamazakiNeuron(object):
         # used then the time constants have to be rescaled to get
         # Yamazaki and BRIAN to match up.
         if tau_ex is not None:
-            self.decay_ex = 1-dt/tau_ex #exp(-dt/tau_ex)
+            self.decay_ex = exp(-dt/tau_ex)#1-dt/tau_ex #
         else:
             self.decay_ex = 0.
         if tau_inh is not None:
-            self.decay_inh = 1-dt/tau_inh #exp(-dt/tau_inh)
+            self.decay_inh = exp(-dt/tau_inh)#1-dt/tau_inh #
         else:
             self.decay_inh = 0.
-        self.decay_ahp = 1-dt/tau_ahp #exp(-dt/tau_ahp)
+        self.decay_ahp = exp(-dt/tau_ahp)#1-dt/tau_ahp #
         
         # psp
         self.psp_ex = zeros_like(r_ex)
