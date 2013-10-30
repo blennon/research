@@ -45,9 +45,9 @@ class VNTest(unittest.TestCase):
         
         run(200*ms)
         
-        M_V.plot()
-        plot(M_V.times,array(VN_V[:-1])*mV,color='g')
-        show()
+        #M_V.plot()
+        #plot(M_V.times,array(VN_V[:-1])*mV,color='g')
+        #show()
         
         self.assertAlmostEqual(norm(array(VN_V)[:-1] - M_V[0]/mV), 0., 10)
         
