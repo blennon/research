@@ -2,6 +2,7 @@ from pylab import *
 from brian import *
 from abstract_neuron_group import *
 from util import * 
+
 class PurkinjeCellGroup(AbstractNeuronGroup):
     '''
     Group of Purkinje Cells
