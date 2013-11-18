@@ -33,15 +33,20 @@ def run_net((w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj)):
     PKJ = PurkinjeCellGroup(N_PKJ)
     
     # Synapses
-    S_MLI_PKJ = Synapses(MLI,PKJ,model='w:1',pre='g_inh+=PKJ.g_inh_*w_mli_pkj')
-    S_MLI_MLI = Synapses(MLI,MLI,model='w:1',pre='g_inh+=MLI.g_inh_*w_mli_mli')
-    S_PKJ_MLI = Synapses(PKJ,MLI,model='w:1',pre='g_inh+=MLI.g_inh_*w_pkj_mli')
-    S_PKJ_PKJ = Synapses(PKJ,PKJ,model='w:1',pre='g_inh+=PKJ.g_inh_*w_pkj_pkj')
+    S_MLI_PKJ = Synapses(MLI,PKJ,model='w:1',pre='g_inh+=PKJ.g_inh_*w')
+    S_MLI_MLI = Synapses(MLI,MLI,model='w:1',pre='g_inh+=MLI.g_inh_*w')
+    S_PKJ_MLI = Synapses(PKJ,MLI,model='w:1',pre='g_inh+=MLI.g_inh_*w')
+    S_PKJ_PKJ = Synapses(PKJ,PKJ,model='w:1',pre='g_inh+=PKJ.g_inh_*w')
     
-    connect_mli_pkj(S_MLI_PKJ,pkj_dist=8,syn_prob=.125)
-    connect_mli_mli(S_MLI_MLI,dist=80,syn_prob=.0275)
-    S_PKJ_MLI[:,:] = 'j/(N_MLI/N_PKJ) == i'
+    # Connections
+    connect_mli_pkj(S_MLI_PKJ,pkj_dist=8,syn_prob=.25)
+    connect_mli_mli(S_MLI_MLI,dist=80,syn_prob=.05)
+    S_PKJ_MLI[:,:] = '(j/(N_MLI/N_PKJ) == i) & (rand()<.5)'
     S_PKJ_PKJ[:,:] = '(minimum(abs(i-j),abs(abs(i-j)-N_PKJ))<=5) & (i!=j) & (rand()<.25)'
+    S_MLI_PKJ.w[:,:] = 'rand()*w_mli_pkj'
+    S_MLI_MLI.w[:,:] = 'rand()*w_mli_mli'
+    S_PKJ_MLI.w[:,:] = 'rand()*w_pkj_mli'
+    S_PKJ_PKJ.w[:,:] = 'rand()*w_pkj_pkj'
         
     @network_operation(Clock(dt=defaultclock.dt))
     def random_current():
@@ -68,10 +73,10 @@ def run_net((w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj)):
 
 if __name__ == "__main__":
     pool = multiprocessing.Pool(6)
-    w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj = linspace(0.1,2.,10),linspace(0.,1.,10),linspace(0.1,1.,10),linspace(0.1,1.,10)
+    w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj = linspace(0.1,1.,6),linspace(0.1,1.,6),linspace(0.1,1.,6),linspace(0.1,1.,6)
     results = pool.map(run_net, itertools.product(w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj))
     
-    out_dir = out_dir = '/home/bill/research/data/neuron_models/molecular_layer/mli_pkj_param_sweep2/%s/'%datetime.datetime.now().isoformat()
+    out_dir = out_dir = '/home/bill/research/data/neuron_models/molecular_layer/mli_pkj_param_sweep3/%s/'%datetime.datetime.now().isoformat()
     os.makedirs(out_dir)
     
     params = itertools.product(w_pkj_pkj,w_pkj_mli,w_mli_mli,w_mli_pkj)
