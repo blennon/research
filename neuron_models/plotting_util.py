@@ -23,7 +23,7 @@ def raster_plot_subset(spikes, inds, axis=None, **plotoptions):
     else:
         axis.plot(times,hstack(neuron_numbers),'.',mew=0,**plotoptions)
         axis.set_ylim(ymax=max(inds))
-        axis.set_ylabel('Neuron number')
+        axis.set_ylabel('Neuron number', fontsize=18)
     
 def plot_population_firing_rate(spikes, n_bins, tau=25., ax=None):
     '''
@@ -43,7 +43,7 @@ def plot_population_firing_rate(spikes, n_bins, tau=25., ax=None):
         plot(mean_firing_rate)
     else:
         ax.plot(mean_firing_rate,'k',linewidth=2)
-        ax.set_ylabel('Average Neuron Firing Rate Hz')
+        ax.set_ylabel('Average Neuron Firing Rate Hz', fontsize=18)
         
 def plot_raster_firingrate_overlay(spikes, n_bins, inds, ax1):
     '''
