@@ -59,6 +59,19 @@ class ConnectionsTest(unittest.TestCase):
             self.assertTrue((i,0) in cxns)
         for i in [20,40]:
             self.assertFalse((i,2) in cxns)
+    
+    def test_gr_mli_connections(self):
+        N_GO = 5**2
+        N_GR = N_GO * 2**2
+        N_PKJ = 3
+        MLI_PKJ_ratio = 2
+        pre, post = gr_to_mli_connections(N_GO,N_GR,N_PKJ,MLI_PKJ_ratio,go_span=1,p=1)
+        cxns = zip(pre,post)
+        self.assertEqual(len(cxns),3*3*20*2)
+        for c in [(0,0),(0,1),(80,0),(80,1),(20,0),(20,1)]:
+            self.assertTrue(c in cxns)
+        for i in [20,40]:
+            self.assertFalse((i,5) in cxns)
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

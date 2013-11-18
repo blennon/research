@@ -15,7 +15,6 @@ def gr_to_pkj_connections(N_GO = 32**2,N_GR = 10**2 * 32**2, N_PKJ = 16, go_span
     go_span: number of rows of GO cells to span when connecting from
              GR clusters to PKJs (each GR cluster of N_GR/N_GO cells
              corresponds to one GO).
-    p   : probability of connecting a granule cell cluster to a Golgi cell
     
     This assumes a square grid of GO cells.  Each GO has a corresponding
     cluster of GR cells.  Each GR cells are indexed by what cluster they
@@ -34,6 +33,44 @@ def gr_to_pkj_connections(N_GO = 32**2,N_GR = 10**2 * 32**2, N_PKJ = 16, go_span
         rows = arange(pkj_ind*n-go_span,pkj_ind*n+go_span+1) % w_GO # row spans
         for gr_ind in hstack(GR_grid[rows,:]):
             connections.append((gr_ind,pkj_ind))
+    return map(array,zip(*set(connections)))
+
+def gr_to_mli_connections(N_GO = 32**2,N_GR = 10**2 * 32**2, N_PKJ = 16, MLI_PKJ_ratio=10, go_span=4, p=.002):
+    '''
+    Implementation of connection matrix from a 2D grid of granule cells to 
+    to a 1D grid of purkinje cells
+
+    Inspired by T. Yamazaki's code from Yamazaki and Nagao 2012
+    from: https://github.com/blennon/Cerebellum/blob/master/okr.c
+
+    N_GO: number of Golgi cells
+    N_GR: number of Granule cells
+    N_PKJ: number of Purkinje cells
+    MLI_PKJ_ratio: ratio of number of MLIs to PKJs
+    go_span: number of rows of GO cells to span when connecting from
+             GR clusters to PKJs (each GR cluster of N_GR/N_GO cells
+             corresponds to one GO).
+    p: probability of connecting GR to MLI 
+    
+    This assumes a square grid of GO cells.  Each GO has a corresponding
+    cluster of GR cells.  Each GR cells are indexed by what cluster they
+    belong to, e.g. n:n+N_GR/N_GO for the nth GO.
+    
+    returns two arrays: pre and post synaptic indices
+    '''
+    connections = []
+    w_GO = int(N_GO**.5)
+    
+    # arrange GRs into a grid of w_GO rows
+    GR_grid = arange(N_GR).reshape(w_GO,w_GO*N_GR/N_GO)
+    
+    for pkj_ind in range(N_PKJ):
+        n = int(ceil(float(w_GO)/N_PKJ)) # spacing between successive centers of row spans
+        rows = arange(pkj_ind*n-go_span,pkj_ind*n+go_span+1) % w_GO # row spans
+        for gr_ind in hstack(GR_grid[rows,:]):
+            for mli_ind in range(MLI_PKJ_ratio):
+                if rand() < p:
+                    connections.append((gr_ind,pkj_ind*MLI_PKJ_ratio + mli_ind))
     return map(array,zip(*set(connections)))
 
 def gr_to_go_connections(N_go = 32**2, N_gr = 32**2 * 10**2, dist = 3, p=.05, wrap=False):
@@ -189,3 +226,7 @@ def list_connections(syn):
         post_neuron_inds = syn.postsynaptic.data[array(syn_inds)]
         cnxns += zip(repeat(pre_neuron_ind, len(syn_inds)), post_neuron_inds)
     return cnxns
+
+if __name__ == "__main__":
+    c = gr_to_mli_connections(N_GR = 32**2 * 5**2, p=.007)
+    print c[0].shape[0]/160.
