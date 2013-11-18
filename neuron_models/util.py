@@ -1,5 +1,6 @@
 import numpy as np
 from brian import *
+import cPickle
 
 def cartesian(arrays, out=None):
     """
@@ -161,3 +162,20 @@ def adjust_tau(dt, tau):
     as dt gets bigger, the error between these two gets larger.
     '''
     return dt/(1-exp(-dt/tau))
+
+def save_synapses(syn,fname,out_dir):
+    '''
+    save a synapses object 'syn' to disk -- both connectivity
+    and state of weights
+    '''
+    syn.save_connectivity(out_dir+fname+'.syn')
+    cPickle.dump(syn.w[:,:],open(out_dir+fname+'.w','w'))
+    
+def load_synapses(syn,fname,in_dir):
+    '''
+    load the connectivity and weight state from disk for
+    a synapses object 'syn'
+    '''
+    syn.load_connectivity(in_dir+fname+'.syn')
+    syn.w[:,:] = cPickle.load(open(in_dir+fname+'.w'))
+    return syn
