@@ -52,10 +52,10 @@ def run_net((k,theta,T,g_inh_,spike_delay)):
     return V_monitor.getvalues(), first_isi, spikes.spiketimes
 
 if __name__ == "__main__":
-    k, theta, T, g_inh, delay = 0.430303, 0.195962, .08*second, 2*nS, 12*ms
+    k, theta, T, g_inh, delay = 0.430303, 0.195962, .08*second, 4*nS, 12*ms
     params = tuple([k,theta,T,g_inh,delay])
     plist = []
-    for i in range(100):
+    for i in range(500):
         plist.append(params)
     pool = multiprocessing.Pool(6)
     results = pool.map(run_net, plist)

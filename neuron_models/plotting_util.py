@@ -81,8 +81,8 @@ def simpleaxis(ax):
     ax.get_xaxis().tick_bottom()
     ax.get_yaxis().tick_left()
     
-def plot_ISI_histogram(ISI_monitor, spike_monitor, rate_monitor, xy, xytext, color='w'):
-    hist_plot(ISI_monitor, newfigure=False, color=color)
+def plot_ISI_histogram(ISI_monitor, spike_monitor, rate_monitor, xy, xytext, **plotargs):
+    hist_plot(ISI_monitor, newfigure=False, **plotargs)
     mew, std = isi_mean_and_std(spike_monitor)
     s = 'rate = %0.1f Hz\nCV = %0.2f' % (mean(rate_monitor.rate),std/mew)
     annotate(s,xy=xy,xytext=xytext,xycoords='data',fontsize=24)
@@ -91,10 +91,10 @@ def plot_ISI_histogram(ISI_monitor, spike_monitor, rate_monitor, xy, xytext, col
     ylabel('Count', fontsize=20)
 
 
-def plot_neuron_ISI_histogram(spike_monitor, ind, ax=None, xy=(20,0), xytext=None, nbins=100, color='w'):
+def plot_neuron_ISI_histogram(spike_monitor, ind, ax=None, xy=(20,0), xytext=None, nbins=100, **plotargs):
     if ax is None:
         subplot(111)
-    counts, bins, _ = ax.hist(diff(spike_monitor.spiketimes[ind])*1000, nbins, color=color)
+    counts, bins, _ = ax.hist(diff(spike_monitor.spiketimes[ind])*1000, nbins, **plotargs)
     mew, std = isi_mean_and_std(spike_monitor,ind)
     s = 'rate = %0.1f Hz\nCV = %0.2f' % (1000/mew,std/mew)
     if xytext is None:
@@ -106,7 +106,7 @@ def plot_neuron_ISI_histogram(spike_monitor, ind, ax=None, xy=(20,0), xytext=Non
     ylabel('Count', fontsize=20)
     return ax
 
-def plot_spike_correlogram(T1, T2, width=20 * ms, bin=1 * ms, T=None, auto_ylim=True, ax=None):
+def plot_spike_correlogram(T1, T2, width=20 * ms, bin=1 * ms, T=None, auto_ylim=True, ax=None, **plotargs):
     '''
     MODIFIED from brian.tools.statistics.correlogram
 
@@ -139,8 +139,8 @@ def plot_spike_correlogram(T1, T2, width=20 * ms, bin=1 * ms, T=None, auto_ylim=
     H, _ = histogram(l, bins=arange(2 * n + 1) * bin - n * bin)
     if ax is None:
         ax = subplot(111)
-    ax.plot(linspace(-width*1000,width*1000,H.shape[0]),H,color='k')
-    ax.fill_between(linspace(-width*1000,width*1000,H.shape[0]),H,color='k')
+    ax.plot(linspace(-width*1000,width*1000,H.shape[0]),H,**plotargs)
+    ax.fill_between(linspace(-width*1000,width*1000,H.shape[0]),H,**plotargs)
     xlim([-width*1000,width*1000])
     tick_params(labelsize=16)
     xlabel('Time (ms)',fontsize=20)
