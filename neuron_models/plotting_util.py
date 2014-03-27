@@ -98,9 +98,9 @@ def plot_neuron_ISI_histogram(spike_monitor, ind, ax=None, xy=(20,0), xytext=Non
     mew, std = isi_mean_and_std(spike_monitor,ind)
     s = 'rate = %0.1f Hz\nCV = %0.2f' % (1000/mew,std/mew)
     if xytext is None:
-        ax.annotate(s,xy=xy,xytext=(bins[int(bins.shape[0]*.5)],counts.max()*.75),xycoords='data',fontsize=24)
+        ax.annotate(s,xy=xy,xytext=(bins[int(bins.shape[0]*.5)],counts.max()*.75),xycoords='data',fontsize=20)
     else:
-        ax.annotate(s,xy=xy,xytext=xytext,xycoords='data',fontsize=24)
+        ax.annotate(s,xy=xy,xytext=xytext,xycoords='data',fontsize=20)
     ax.tick_params(labelsize=20)
     xlabel('ISI (ms)', fontsize=20)
     ylabel('Count', fontsize=20)
