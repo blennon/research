@@ -15,3 +15,6 @@ class RecordState(object):
 
     def get_recording(self):
         return squeeze(self.history).T
+
+    def clear_recording(self):
+        self.history = []
