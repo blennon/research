@@ -13,15 +13,14 @@ class NeuronGroup(object):
         self.N = N
         self.state = zeros(N)
         self.resting_state = resting_state
-        self.sources, self.weights = [], []
+        self.connections = []
         self.update()
 
-    def connect(self, source, weights):
+    def connect(self, connection):
         '''
-        connect source neuron group 'source' with synaptic weights 'weights'
+        connect this group with a connection object
         '''
-        self.sources.append(source)
-        self.weights.append(weights)
+        self.connections.append(connection)
 
     def set_state(self, state):
         '''
@@ -44,11 +43,18 @@ class NeuronGroup(object):
         update the state of the neurons given the inputs
         '''
         self.reset_state()
-        for s,W in zip(self.sources,self.weights):
-            self.state += dot(s.get_state(),W)
+        for C in self.connections:
+            polarity = C.get_synapse_polarity()
+            self.state += polarity * dot(C.get_state(), C.get_source_state())
 
     def get_state(self):
         '''
         return the state of the neurons
         '''
         return self.state
+
+    def get_num_neurons(self):
+        '''
+        return the number of neurons in the neuron group
+        '''
+        return self.state.shape[0]

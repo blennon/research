@@ -1,7 +1,7 @@
 __author__ = 'bill'
 from pylab import *
 
-class RecordState(object):
+class StateMonitor(object):
     '''
     record the state of the neuron group
     '''
