@@ -14,7 +14,7 @@ class NeuronGroup(object):
         self.state = zeros(N)
         self.resting_state = resting_state
         self.connections = []
-        self.update()
+        self.reset_state()
 
     def connect(self, connection):
         '''
@@ -58,3 +58,44 @@ class NeuronGroup(object):
         return the number of neurons in the neuron group
         '''
         return self.state.shape[0]
+
+class ShuntingNeuronGroup(NeuronGroup):
+    '''
+    Implements shunting neuron dynamics
+
+    du/dt = -A(u-B) + (C-Du)I_exc - (E+Fu)I_inh
+    where B is the resting state
+    '''
+
+    def __init__(self, N, resting_state, A=1, C=1, D=1, E=0, F=1, tau=.5):
+        super(ShuntingNeuronGroup, self).__init__(N, resting_state)
+        self.A, self.C, self.D, self.E, self.F = A,C,D,E,F
+        self.tau = tau
+
+    def update(self):
+        '''
+        update the state of the network
+        '''
+        I_exc = self.synaptic_input('excitatory')
+        I_inh = self.synaptic_input('inhibitory')
+        dudt = -self.A*(self.state - self.resting_state) + (self.C-self.D*self.state)*I_exc + \
+               (self.E+self.F*self.state)*I_inh
+        self.state += self.tau*dudt
+
+    def synaptic_input(self, polarity):
+        '''
+        compute the total synaptic input across all connections of a certain polarity, i.e.
+        excitatory or inhibitory
+        '''
+        if polarity == 'excitatory':
+            sign = 1
+        elif polarity == 'inhibitory':
+            sign = -1
+        else:
+            raise Exception('polarity must be either excitatory or inhibitory')
+
+        I = 0.
+        for C in self.connections:
+            if C.get_synapse_polarity() == sign:
+                I += dot(C.get_state(), C.get_source_state())
+        return I

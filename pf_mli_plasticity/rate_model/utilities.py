@@ -14,7 +14,16 @@ class StateMonitor(object):
         self.history.append(self.neuron_group.get_state().copy())
 
     def get_recording(self):
-        return squeeze(self.history).T
+        rec = squeeze(self.history).T
+        if len(rec.shape) == 1:
+            return rec[None,...]
+        return rec
 
     def clear_recording(self):
         self.history = []
+
+    def plot(self, ind=0):
+        '''
+        plot the state of neuron number 'ind'
+        '''
+        plot(self.get_recording()[ind,:])
