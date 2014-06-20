@@ -22,8 +22,8 @@ class StateMonitor(object):
     def clear_recording(self):
         self.history = []
 
-    def plot(self, ind=0):
+    def plot(self, ind=0, **plot_params):
         '''
         plot the state of neuron number 'ind'
         '''
-        plot(self.get_recording()[ind,:])
+        plot(self.get_recording()[ind,:], **plot_params)
