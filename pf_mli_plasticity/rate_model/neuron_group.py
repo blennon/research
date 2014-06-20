@@ -6,13 +6,14 @@ class NeuronGroup(object):
     Defines a rate based model for a neuron group with 'N' neurons
     '''
 
-    def __init__(self, N, resting_state=None):
+    def __init__(self, N, resting_state=None, name=None):
         '''
         N: number of neurons in this group
         '''
         self.N = N
         self.state = zeros(N)
         self.resting_state = resting_state
+        self.name = name
         self.connections = []
         self.reset_state()
 
@@ -59,6 +60,13 @@ class NeuronGroup(object):
         '''
         return self.state.shape[0]
 
+    def get_connection(self, name):
+        '''
+        returns the connection
+        '''
+        return self.connections
+
+
 class ShuntingNeuronGroup(NeuronGroup):
     '''
     Implements shunting neuron dynamics
@@ -67,10 +75,11 @@ class ShuntingNeuronGroup(NeuronGroup):
     where B is the resting state
     '''
 
-    def __init__(self, N, resting_state, A=1, C=1, D=1, E=0, F=1, tau=.5):
+    def __init__(self, N, resting_state, A=1, C=1, D=1, E=0, F=1, tau=.5, dt=.1):
         super(ShuntingNeuronGroup, self).__init__(N, resting_state)
         self.A, self.C, self.D, self.E, self.F = A,C,D,E,F
         self.tau = tau
+        self.dt = dt
 
     def update(self):
         '''
@@ -80,7 +89,7 @@ class ShuntingNeuronGroup(NeuronGroup):
         I_inh = self.synaptic_input('inhibitory')
         dudt = -self.A*(self.state - self.resting_state) + (self.C-self.D*self.state)*I_exc + \
                (self.E+self.F*self.state)*I_inh
-        self.state += self.tau*dudt
+        self.state += self.dt*self.tau*dudt
 
     def synaptic_input(self, polarity):
         '''
