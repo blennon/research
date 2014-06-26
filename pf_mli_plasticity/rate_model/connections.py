@@ -67,25 +67,18 @@ class PF_MLI_Connection(Connection):
     '''
     Defines the connection between PFs and MLIs
     '''
-    def __init__(self, src, trg, W=None, delta=.1, dt=.1, use_trace=True):
+    def __init__(self, src, trg, PF_trace, W=None, delta=.1, dt=.1):
         '''
         src: source neuron group
         trg: target neuron group
+        PF_trace: a neuron group recording a trace of the PF activity
         W: connection matrix
         delta: initial weight for inactive synapses
         '''
         super(PF_MLI_Connection,self).__init__(src, trg, W)
         self.delta = delta
         self.dt = dt
-        self.use_trace = use_trace
-        self.PF_trace = self.src.get_state().copy()
-
-    def update_PF_trace(self, tau=10.):
-        '''
-        updates the state of the PF trace
-        '''
-        dP_dt = (1./tau)*(self.src.get_state() - self.PF_trace)
-        self.PF_trace += self.dt*dP_dt
+        self.PF_trace = PF_trace
 
     def update(self, beta=.001, CF_active=False):
         '''
@@ -98,16 +91,14 @@ class PF_MLI_Connection(Connection):
         CF_active: boolean if an impinging CF is active or not
         use_PF_trace: boolean, if True, use a moving average of the PF activity
         '''
+
+        # set co-active PF-CF synapses to delta
         if CF_active:
             PF = self.src.get_state()
             self.state[(self.state == 0) & tile(PF>0,(self.state.shape[0],1))] = self.delta
 
-        if self.use_trace:
-            self.update_PF_trace()
-            PF = self.PF_trace
-        else:
-            PF = self.src.get_state()[...,None]
-        MLI = self.trg.get_state()[...,None]
+        # update active synapses according to GSD
+        PF, MLI = self.PF_trace.get_state()[...,None], self.trg.get_state()[...,None]
         dW_dt = beta*(MLI - self.state)*PF.T
         # only update active synapses, i.e. w > 0
         self.state[self.state>0] += self.dt*dW_dt[self.state>0]

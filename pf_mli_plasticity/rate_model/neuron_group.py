@@ -87,7 +87,7 @@ class ShuntingNeuronGroup(NeuronGroup):
         '''
         I_exc = self.synaptic_input('excitatory')
         I_inh = self.synaptic_input('inhibitory')
-        dudt = -self.A*(self.state - self.resting_state) + (self.C-self.D*self.state)*I_exc + \
+        dudt = -self.A*(self.state - self.resting_state) + (self.C-self.D*self.state)*I_exc - \
                (self.E+self.F*self.state)*I_inh
         self.state += self.dt*self.tau*dudt
 
@@ -108,3 +108,25 @@ class ShuntingNeuronGroup(NeuronGroup):
             if C.get_synapse_polarity() == sign:
                 I += dot(C.get_state(), C.get_source_state())
         return I
+
+class PFTrace(NeuronGroup):
+    '''
+    Keeps a trace of the PF activity
+    '''
+
+    def __init__(self, N, dt=.1, tau=0.):
+        super(PFTrace, self).__init__(N, resting_state=zeros(N), name='PF trace')
+        self.dt = dt
+        self.tau = tau
+
+    def update(self, PF_state):
+        '''
+        updates the state of the PF trace
+
+        tau: trace time constant, if zero the trace is the instantaneous value of the input
+        '''
+        if self.tau > 0:
+            dP_dt = (1./self.tau)*(PF_state - self.state)
+            self.state += self.dt*dP_dt
+        else:
+            self.state = PF_state
