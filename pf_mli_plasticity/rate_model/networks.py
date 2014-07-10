@@ -14,7 +14,8 @@ class Network(object):
 
 class PF_MLI_Network(Network):
 
-    def __init__(self, N_PF, N_MLI, N_CF, MLI_rest, W_PF_MLI, W_CF_MLI, beta=.001, dt=.1, tau_trace=0.):
+    def __init__(self, N_PF, N_MLI, N_CF, MLI_rest, W_PF_MLI, W_CF_MLI,
+                 A=1, C=1, D=1, E=0, F=1, beta=.001, dt=.1, tau_trace=0.):
         '''
         N_PF: number of PFs
         N_MLI: number of MLIs
@@ -32,7 +33,7 @@ class PF_MLI_Network(Network):
         # define neuron groups
         self.PF = NeuronGroup(N_PF)
         self.PF_trace = PFTrace(N_PF, dt, tau_trace)
-        self.MLI = ShuntingNeuronGroup(N_MLI, A=1.5, resting_state=MLI_rest,tau=1.,dt=dt)
+        self.MLI = ShuntingNeuronGroup(N_MLI, MLI_rest, A, C, D, E, F, tau=1.,dt=dt)
         self.CF = NeuronGroup(N_CF)
 
         # connect neurons

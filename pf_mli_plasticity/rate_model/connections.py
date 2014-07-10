@@ -99,6 +99,6 @@ class PF_MLI_Connection(Connection):
 
         # update active synapses according to GSD
         PF, MLI = self.PF_trace.get_state()[...,None], self.trg.get_state()[...,None]
-        dW_dt = beta*(MLI - self.state)*PF.T
+        dW_dt = beta*(MLI - 1.1*self.state)*PF.T
         # only update active synapses, i.e. w > 0
         self.state[self.state>0] += self.dt*dW_dt[self.state>0]
