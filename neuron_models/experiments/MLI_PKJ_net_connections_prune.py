@@ -1,3 +1,13 @@
+'''
+This script runs simulations by loading the connection matrices from the network that reproduced the results
+shown in the paper and randomly pruning some percentage of one connection type. E.g. A random subset of 50% of the
+MLI-MLI connections will be pruned (removed) and the simulation run. The output is firing rate and ISI CV statistics for
+each neuron averaged across the entire simulation. This script runs one simulation for each scenario pruning either
+MLI-MLI or PKJ-MLI connections by 0%, 25%, 50%, 75%, 100%.
+
+Note: you can use any set of saved connection matrices to run these experiments.
+'''
+
 import datetime
 import os
 import gc
@@ -12,6 +22,7 @@ import time
 from itertools import product
 set_global_preferences(useweave=True, usenewpropagate=True, usecodegen=True, usecodegenweave=True)
 defaultclock.dt = .25*ms
+import random
 
 def fr_stats(spike_monitor):
     mean_frs = []
@@ -34,7 +45,8 @@ def prune_synapses(syn,pct):
     '''
     randomly set 'pct' percent synapse weights to 0 for synapse object 'syn'
     '''
-    inds = random_integers(0,syn.w[:,:].shape[0]-1,int(syn.w[:,:].shape[0]*pct))
+    N = syn.w[:,:].shape[0]
+    inds = random.sample(range(N), int(N*pct))
     syn.w[inds] = 0.
 
 def run_net((syn_prune,prune_pct)):
@@ -97,7 +109,8 @@ def run_net((syn_prune,prune_pct)):
 if __name__ == "__main__":
 
     N_simulations = 6
-    pool = multiprocessing.Pool(5)
+    N_cores = 6
+    pool = multiprocessing.Pool(N_cores)
     results = pool.map(run_net, product(['MLI_MLI', 'MLI_PKJ', 'PKJ_MLI'],[0.,.25,.5,.75,1.]))
 
     out_dir = '/home/bill/research/data/neuron_models/molecular_layer/clip_connections/'
