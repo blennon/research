@@ -179,3 +179,33 @@ def load_synapses(syn,fname,in_dir):
     syn.load_connectivity(in_dir+fname+'.syn')
     syn.w[:,:] = cPickle.load(open(in_dir+fname+'.w'))
     return syn
+
+def fr_stats(spike_monitor):
+    '''
+    compute the mean firing rate for each neuron recorded by 'spike_monitor'
+
+    returns a list of (neuron index, firing rate) tuples
+    '''
+    mean_frs = []
+    for ind in range(len(spike_monitor.spiketimes)):
+        isis = diff(spike_monitor.spiketimes[ind])
+        if len(list(isis)) == 0:
+            mean_frs.append((ind,0.))
+        else:
+            mean_frs.append((ind,mean(isis)**-1))
+    return mean_frs
+
+def isi_cv_stats(spike_monitor):
+    '''
+    compute the mean Inter-Spike Interval Coefficient of Variation for each neuron recorded
+    by 'spike_monitor'.
+
+    Sometimes neurons don't spike and a NaN is returned.
+
+    return a list of (neuron index, CV) tuples
+    '''
+    cvs = []
+    for ind in range(len(spike_monitor.spiketimes)):
+        isi_mean, isi_std = isi_mean_and_std(spike_monitor, ind)
+        cvs.append((ind,isi_std/isi_mean))
+    return cvs

@@ -6,6 +6,9 @@ each neuron averaged across the entire simulation. This script runs one simulati
 MLI-MLI or PKJ-MLI connections by 0%, 25%, 50%, 75%, 100%.
 
 Note: you can use any set of saved connection matrices to run these experiments.
+
+This file dumps the data to disk. A corresponding IPython notebook is used to analyze the data,
+"connections_prune_analysis.ipynb".
 '''
 
 import datetime
@@ -24,23 +27,6 @@ set_global_preferences(useweave=True, usenewpropagate=True, usecodegen=True, use
 defaultclock.dt = .25*ms
 import random
 
-def fr_stats(spike_monitor):
-    mean_frs = []
-    for ind in range(len(spike_monitor.spiketimes)):
-        isis = diff(spike_monitor.spiketimes[ind])
-        if len(list(isis)) == 0:
-            mean_frs.append((ind,0.))
-        else:
-            mean_frs.append((ind,mean(isis)**-1))
-    return mean_frs
-
-def isi_cv_stats(spike_monitor):
-    cvs = []
-    for ind in range(len(spike_monitor.spiketimes)):
-        isi_mean, isi_std = isi_mean_and_std(spike_monitor, ind)
-        cvs.append((ind,isi_std/isi_mean))
-    return cvs
-
 def prune_synapses(syn,pct):
     '''
     randomly set 'pct' percent synapse weights to 0 for synapse object 'syn'
@@ -51,6 +37,9 @@ def prune_synapses(syn,pct):
 
 def run_net((syn_prune,prune_pct)):
     '''
+    sets up a network and simulates it.
+
+    syn_prune: which synapse type to prune
     prune_pct: percent to prune the synapses by.
     '''
     seed(int(os.getpid()*time.time()))
@@ -108,11 +97,13 @@ def run_net((syn_prune,prune_pct)):
 
 if __name__ == "__main__":
 
+    # run the simulations (in parallel if N_cores > 1)
     N_simulations = 6
     N_cores = 6
     pool = multiprocessing.Pool(N_cores)
     results = pool.map(run_net, product(['MLI_MLI', 'MLI_PKJ', 'PKJ_MLI'],[0.,.25,.5,.75,1.]))
 
+    # save the results to disk
     out_dir = '/home/bill/research/data/neuron_models/molecular_layer/clip_connections/'
     cPickle.dump(results,open(out_dir+'connections_prune_results.pkl','w'))
 

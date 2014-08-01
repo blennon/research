@@ -1,6 +1,9 @@
 '''
-The goal of this experiment is to simulate the network with the same parameters multiple times and show that
-on multiple runs it reproduces similar behavior.
+The goal of this experiment is to simulate different random instantiations of the network model with the same parameters
+multiple times and show that on multiple runs it reproduces similar behavior.
+
+This file dumps the data to disk. A corresponding IPython notebook is used to analyze the data,
+"consistency_robustness_analysis.ipynb".
 '''
 import datetime
 import os
@@ -16,24 +19,12 @@ import time
 set_global_preferences(useweave=True, usenewpropagate=True, usecodegen=True, usecodegenweave=True)
 defaultclock.dt = .25*ms
 
-def fr_stats(spike_monitor):
-    mean_frs = []
-    for ind in range(len(spike_monitor.spiketimes)):
-        isis = diff(spike_monitor.spiketimes[ind])
-        if len(list(isis)) == 0:
-            mean_frs.append((ind,0.))
-        else:
-            mean_frs.append((ind,mean(isis)**-1))
-    return mean_frs
-
-def isi_cv_stats(spike_monitor):
-    cvs = []
-    for ind in range(len(spike_monitor.spiketimes)):
-        isi_mean, isi_std = isi_mean_and_std(spike_monitor, ind)
-        cvs.append((ind,isi_std/isi_mean))
-    return cvs
-
 def run_net(i):
+    '''
+    sets up a network and simulates it.
+
+    i: simulation number
+    '''
     seed(i*int(os.getpid()*time.time()))
     print os.getpid()
     reinit()
@@ -81,8 +72,11 @@ def run_net(i):
 
 if __name__ == "__main__":
 
+    # run simulations
     N_simulations = 100
     pool = multiprocessing.Pool(6)
+
+    # save results to disk
     results = pool.map(run_net, range(N_simulations))
     cPickle.dump(results,open('consistency_results.pkl','w'))
 

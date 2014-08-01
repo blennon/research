@@ -2,7 +2,8 @@
 The goal of this experiment is to simulate the network with slight perturbations to the parameters multiple times and
 show that the network produces similar behavior.
 
-This file dumps the data to disk to be analyzed in an ipython notebook
+This file dumps the data to disk. A corresponding IPython notebook is used to analyze the data,
+"consistency_robustness_analysis.ipynb".
 '''
 import datetime
 import os
@@ -17,23 +18,6 @@ import cPickle
 import time
 set_global_preferences(useweave=True, usenewpropagate=True, usecodegen=True, usecodegenweave=True)
 defaultclock.dt = .25*ms
-
-def fr_stats(spike_monitor):
-    mean_frs = []
-    for ind in range(len(spike_monitor.spiketimes)):
-        isis = diff(spike_monitor.spiketimes[ind])
-        if len(list(isis)) == 0:
-            mean_frs.append((ind,0.))
-        else:
-            mean_frs.append((ind,mean(isis)**-1))
-    return mean_frs
-
-def isi_cv_stats(spike_monitor):
-    cvs = []
-    for ind in range(len(spike_monitor.spiketimes)):
-        isi_mean, isi_std = isi_mean_and_std(spike_monitor, ind)
-        cvs.append((ind,isi_std/isi_mean))
-    return cvs
 
 def perturb(x, pct=.1):
     '''perturb the value x by up to some percent pct, determined uniformly randomly'''
