@@ -67,18 +67,20 @@ class PF_MLI_Connection(Connection):
     '''
     Defines the connection between PFs and MLIs
     '''
-    def __init__(self, src, trg, PF_trace, W=None, delta=.1, dt=.1):
+    def __init__(self, src, trg, PF_trace, W=None, delta=.1, dt=.1, alpha=1.):
         '''
         src: source neuron group
         trg: target neuron group
         PF_trace: a neuron group recording a trace of the PF activity
         W: connection matrix
         delta: initial weight for inactive synapses
+        alpha: a constant multiplier of the weight value in the update equation
         '''
         super(PF_MLI_Connection,self).__init__(src, trg, W)
         self.delta = delta
         self.dt = dt
         self.PF_trace = PF_trace
+        self.alpha = alpha
 
     def update(self, beta=.001, CF_active=False):
         '''
@@ -99,6 +101,6 @@ class PF_MLI_Connection(Connection):
 
         # update active synapses according to GSD
         PF, MLI = self.PF_trace.get_state()[...,None], self.trg.get_state()[...,None]
-        dW_dt = beta*(MLI - 1.1*self.state)*PF.T
+        dW_dt = beta*(MLI - self.alpha*self.state)*PF.T
         # only update active synapses, i.e. w > 0
         self.state[self.state>0] += self.dt*dW_dt[self.state>0]
