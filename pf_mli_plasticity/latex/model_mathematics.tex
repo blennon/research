@@ -1,0 +1,26 @@
+%&latex
+\documentclass{article}
+\usepackage{amsmath}
+
+\begin{document}
+
+%+Contents
+
+%-Contents
+\section{Neuron dynamics}
+\begin{displaymath}
+\tau_{}\frac{d\mathbf{\mathrm{M}\mathrm{L}\mathrm{I}}\mathcal{}\ }{dt}=-A(\mathbf{\mathrm{M}\mathrm{L}\mathrm{I}}-MLI_{rest})+(C-D\mathbf{\mathrm{M}\mathrm{L}\mathrm{I}})\sum_{i}w_{i}\mathrm{P}\mathrm{F}_{i}(t)_{\\ }
+\end{displaymath}
+where, \(\mathrm{M}\mathrm{L}\mathrm{I}\) is the firing rate of the neuron, \(\tau=1\) is a time constant, \(A\) governs the passive decay of the firing rate, \(B\) is the baseline firing rate of the neuron, \(\mathrm{P}\mathrm{F}_{i}(t)\in[0,1]\) is the firing rate of the \(i^{th}\) PF input, and \(w_{i}\in[0,1]\) is the synaptic weight corresponding to \(\mathrm{P}\mathrm{F}_{i}(t)\). 
+
+\section{Learning Equations}
+\begin{displaymath}
+\tau_{w}\frac{dw_{j,i} }{dt}=\beta\mathrm{P}\mathrm{F}_{i}(t)[\mathbf{\mathrm{M}\mathrm{L}\mathrm{I}}_{j}(t)-\alpha w_{j,i}]
+\end{displaymath}
+where, \(\beta\approx.01\), governs the learning rate, \(\alpha=1\)
+\begin{displaymath}
+\frac{dw_{j,i} }{dt} = \begin{cases} \beta\mathrm{P}\mathrm{F}_{i}(t)[\mathbf{\mathrm{M}\mathrm{L}\mathrm{I}}_{j}(t)-\alpha w_{j,i}], & \mbox{if } w_{j,i}>0 \\ 0, & \mbox{if } w_{j,i}=0\mbox{ and } \mathrm{P}\mathrm{F_{i}(t)}=0 \\ \delta, & \mbox{if }w_{j,i}=0 \mbox{ ,} \mathrm{P}\mathrm{F_{i}(t)}>0,\mathrm{C}\mathrm{F(t)}>0 \end{cases}
+\end{displaymath}
+\end{document}
+
+
