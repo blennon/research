@@ -72,7 +72,7 @@ class PF_MLI_Connection(Connection):
         src: source neuron group
         trg: target neuron group
         PF_trace: a neuron group recording a trace of the PF activity
-        W: connection matrix
+        W: connection matrix, dimensions should be (num trg neurons, num src neurons)
         delta: initial weight for inactive synapses
         alpha: a constant multiplier of the weight value in the update equation
         '''
@@ -104,3 +104,4 @@ class PF_MLI_Connection(Connection):
         dW_dt = beta*(MLI - self.alpha*self.state)*PF.T
         # only update active synapses, i.e. w > 0
         self.state[self.state>0] += self.dt*dW_dt[self.state>0]
+
