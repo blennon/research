@@ -29,12 +29,13 @@ def plot_pf(PF_recording, W_recording, ind, c='b'):
     ylim([0,2])
     title('PF%s Firing rate'%ind, fontsize=16)
 
-def plot_weight_over_trials(PF_weights_by_trial, ind, c='b'):
+def plot_weight_over_trials(PF_weights_by_trial, ind, c='b', legend_on=True):
     '''
     plot the weight values for PF of index 'ind' over trials
     '''
     plot(PF_weights_by_trial[:,ind], color=c, lw=2., label='PF%s-MLI Weight'%(ind+1))
-    legend(loc='lower right', fontsize=14)
+    if legend_on:
+        legend(loc='lower right', fontsize=14)
     xlabel('Trial',fontsize=14)
     xticks(fontsize=14)
     yticks(fontsize=14)
