@@ -35,8 +35,8 @@ class RealTimeRateMonitor(SpikeMonitor):
         self.f -= self.f*dt/self.tau_f
         self.r -= self.r*dt/self.tau_r
         if len(spikes):
-            self.f += 1*Hz
-            self.r += 1*Hz
+            self.f[spikes] += 1*Hz
+            self.r[spikes] += 1*Hz
         if record:
             self.recording.append(self.get_firing_rates())
 
