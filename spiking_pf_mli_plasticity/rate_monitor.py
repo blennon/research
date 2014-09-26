@@ -10,7 +10,7 @@ class RealTimeRateMonitor(SpikeMonitor):
     k(t) = ( exp(-t/tau_fall) - exp(-t/tau_rise) ) / (tau_fall - tau_rise)
     '''
     @check_units(tau_f=ms, tau_r=ms)
-    def __init__(self, neuron_group, tau_f=10.*ms, tau_r=2.*ms, record=False):
+    def __init__(self, neuron_group, tau_f=10.*ms, tau_r=2.*ms, record=False, record_clock=None):
         '''
         neuron_group: the neuron group for neurons to record
         tau_f: fall time constant
@@ -20,6 +20,7 @@ class RealTimeRateMonitor(SpikeMonitor):
         self.tau_f = tau_f
         self.tau_r = tau_r
         self.record = record
+        self.record_clock = record_clock
         self.recording = []
         self.f = zeros(len(neuron_group))*Hz
         self.r = zeros(len(neuron_group))*Hz
@@ -38,7 +39,12 @@ class RealTimeRateMonitor(SpikeMonitor):
             self.f[spikes] += 1*Hz
             self.r[spikes] += 1*Hz
         if record:
-            self.recording.append(self.get_firing_rates())
+            if self.record_clock is not None:
+                # convert float time representation to int for accuracy
+                if int(float(defaultclock.t)*100000) % int(float(self.record_clock.dt)*100000)==0:
+                    self.recording.append(self.get_firing_rates())
+            else:
+                self.recording.append(self.get_firing_rates())
 
     def get_firing_rates(self):
         '''
