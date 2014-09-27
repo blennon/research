@@ -21,9 +21,12 @@ class RealTimeRateMonitor(SpikeMonitor):
         self.tau_r = tau_r
         self.record = record
         self.record_clock = record_clock
+        if record_clock is not None:
+           self.n =  int(self.record_clock.dt / defaultclock.dt)
         self.recording = []
         self.f = zeros(len(neuron_group))*Hz
         self.r = zeros(len(neuron_group))*Hz
+        self.i = 0
         super(RealTimeRateMonitor, self).__init__(neuron_group)
 
     def propagate(self, spikes):
@@ -38,13 +41,25 @@ class RealTimeRateMonitor(SpikeMonitor):
         if len(spikes):
             self.f[spikes] += 1*Hz
             self.r[spikes] += 1*Hz
-        if record:
-            if self.record_clock is not None:
-                # convert float time representation to int for accuracy
-                if int(float(defaultclock.t)*100000) % int(float(self.record_clock.dt)*100000)==0:
-                    self.recording.append(self.get_firing_rates())
-            else:
-                self.recording.append(self.get_firing_rates())
+        if self.record:
+           if self.i+1 == self.n:
+               self.record_values()
+               self.i = 0
+           else:
+               self.i += 1
+            #@network_operation(clock = self.record_clock)
+            #def record_rates():
+            #    self.recording.append(self.get_firing_rates())
+
+            #if self.record_clock is not None:
+            #    # convert float time representation to int for accuracy
+            #    if int(float(defaultclock.t)*100000000) % int(float(self.record_clock.dt)*100000000)==0:
+            #        self.recording.append(self.get_firing_rates())
+            #else:
+            #    self.recording.append(self.get_firing_rates())
+
+    def record_values(self):
+        self.recording.append(self.get_firing_rates())
 
     def get_firing_rates(self):
         '''
