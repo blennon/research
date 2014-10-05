@@ -24,10 +24,13 @@ class MLIGroup(AbstractNeuronGroup):
                  gl = 1.6 * nsiemens,          # maximum leak conductance -- derived from Hausser and Clark (1997)
                  g_ahp_ = 50. * nsiemens,      # maximum after hyperpolarization conductance 100 used in paper -- derived to match Lachamp et al. (2009)
                  g_inh_ = 4. * nsiemens,       # maximum inhibitory conductance -- Carter and Regehr (2002)
-                 g_ampa_ = 1.3 * nsiemens,     # maximum AMPAR mediated synaptic conductance -- Carter and Regehr (2002)
+                 g_ampa_ = 3 * nsiemens,       # maximum AMPAR mediated synaptic conductance -- Carter and Regehr (2002)
                  tau_ahp = 2.5 * msecond,      # AHP time constant -- derived to resemble Lachamp et al. (2009)
                  tau_inh = 4.6 * msecond,      # Inhbitory time constant -- Carter and Regehr (2002)
-                 tau_ampa = .8 * msecond,      # AMPAR unitary EPSC time constant -- Carter and Regehr (2002) 
+                 tau_ampa_fast = .8 * msecond, # AMPAR unitary EPSC time constant -- Carter and Regehr (2002)
+                 tau_ampa_slow = 18 * msecond, # EPSC slow time constant -- Satake, Inoue and Imoto (2012)
+                 alpha_ampa_fast = .8,         # EPSC fast component -- Satake, Inoue and Imoto (2012)
+                 alpha_ampa_slow = .2,         # EPSC slow component -- Satake, Inoue and Imoto (2012)
                  rand_V_init = True,
                  tau_adjust = True,
                  **kwargs):
@@ -36,10 +39,12 @@ class MLIGroup(AbstractNeuronGroup):
         self.gl, self.g_ampa_, self.g_inh_, self.g_ahp_ = gl, g_ampa_, g_inh_, g_ahp_
         if tau_adjust:
             dt = defaultclock.dt
-            tau_ampa = adjust_tau(dt, tau_ampa)
+            tau_ampa_fast = adjust_tau(dt, tau_ampa_fast)
+            tau_ampa_slow = adjust_tau(dt, tau_ampa_slow)
             tau_inh = adjust_tau(dt, tau_inh)
             tau_ahp = adjust_tau(dt, tau_ahp)
-        self.tau_ampa,  self.tau_inh, self.tau_ahp = tau_ampa, tau_inh, tau_ahp   
+        self.tau_ampa_fast, self.tau_ampa_slow,  self.tau_inh, self.tau_ahp = tau_ampa_fast, tau_ampa_slow, tau_inh, tau_ahp
+        self.alpha_ampa_fast, self.alpha_ampa_slow = alpha_ampa_fast, alpha_ampa_slow
                
         self.eqns = Equations('''
         # Membrane equation
@@ -49,8 +54,12 @@ class MLIGroup(AbstractNeuronGroup):
         dg_ahp/dt = -g_ahp/tau_ahp : nS
         
         # Glutamate
-        dg_ampa/dt = -g_ampa/tau_ampa : nS
-        
+        dg_ampa_fast/dt = -g_ampa_fast/tau_ampa_fast : nS
+        dg_ampa_slow/dt = -g_ampa_slow/tau_ampa_slow : nS
+        g_ampa = alpha_ampa_fast*g_ampa_fast + alpha_ampa_slow*g_ampa_slow : nS
+
+        g_nmda : nS
+
         # GABA
         dg_inh/dt = -g_inh/tau_inh : nS
         
