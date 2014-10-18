@@ -25,10 +25,14 @@ class MLIGroup(AbstractNeuronGroup):
                  g_ahp_ = 50. * nsiemens,      # maximum after hyperpolarization conductance 100 used in paper -- derived to match Lachamp et al. (2009)
                  g_inh_ = 4. * nsiemens,       # maximum inhibitory conductance -- Carter and Regehr (2002)
                  g_ampa_ = 3 * nsiemens,       # maximum AMPAR mediated synaptic conductance -- Carter and Regehr (2002)
+                 g_nmda_ = 1 * nsiemens,       # maximum NMDAR mediated conductance -- derived from Carter and Regehr (2000)
                  tau_ahp = 2.5 * msecond,      # AHP time constant -- derived to resemble Lachamp et al. (2009)
                  tau_inh = 4.6 * msecond,      # Inhbitory time constant -- Carter and Regehr (2002)
                  tau_ampa_fast = .8 * msecond, # AMPAR unitary EPSC time constant -- Carter and Regehr (2002)
                  tau_ampa_slow = 18 * msecond, # EPSC slow time constant -- Satake, Inoue and Imoto (2012)
+                 tau_nmda_rise = 3 * msecond,  # NMDAR rise time constant -- Gabbiani et al. (1994)
+                 tau_nmda_decay = 40 * msecond,# NMDAR decay time constant -- Gabbiani et al. (1994)
+                 tau_n_decay = 10 * msecond,   # Spillover neurotransmitter decay constant
                  alpha_ampa_fast = .8,         # EPSC fast component -- Satake, Inoue and Imoto (2012)
                  alpha_ampa_slow = .2,         # EPSC slow component -- Satake, Inoue and Imoto (2012)
                  rand_V_init = True,
@@ -48,17 +52,20 @@ class MLIGroup(AbstractNeuronGroup):
                
         self.eqns = Equations('''
         # Membrane equation
-        dV/dt = 1/Cm*(-gl*(V-El)-g_ampa*(V-Eex)-g_ahp*(V-Eahp)-g_inh*(V-Einh) + I) : mV
+        dV/dt = 1/Cm*(-gl*(V-El)-(g_ampa+gv_nmda)*(V-Eex)-g_ahp*(V-Eahp)-g_inh*(V-Einh) + I) : mV
         
         # After hyperpolarization
         dg_ahp/dt = -g_ahp/tau_ahp : nS
         
-        # Glutamate
+        # AMPARs
         dg_ampa_fast/dt = -g_ampa_fast/tau_ampa_fast : nS
         dg_ampa_slow/dt = -g_ampa_slow/tau_ampa_slow : nS
         g_ampa = alpha_ampa_fast*g_ampa_fast + alpha_ampa_slow*g_ampa_slow : nS
 
-        g_nmda : nS
+        # NMDARs and spillover neurotransmitter (n) availability
+        dg_nmda/dt = -g_nmda/tau_nmda_decay + (n**2)*(1-g_nmda)/tau_nmda_rise : 1
+        dn/dt = -n/tau_n_decay : 1
+        gv_nmda = g_nmda_*g_nmda*(1+exp(-V/(16.13*mV))*(1.2/3.57))**-1 : nS # Voltage gated
 
         # GABA
         dg_inh/dt = -g_inh/tau_inh : nS
