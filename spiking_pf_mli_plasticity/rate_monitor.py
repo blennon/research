@@ -27,6 +27,7 @@ class RealTimeRateMonitor(SpikeMonitor):
         self.f = zeros(len(neuron_group))*Hz
         self.r = zeros(len(neuron_group))*Hz
         self.i = 0
+        self.neuron_group = neuron_group
         super(RealTimeRateMonitor, self).__init__(neuron_group)
 
     def propagate(self, spikes):
@@ -67,8 +68,25 @@ class RealTimeRateMonitor(SpikeMonitor):
         '''
         return (self.f - self.r)/(self.tau_f - self.tau_r)
 
+    @check_units(max_fr=Hz)
+    def get_normalized_firing_rates(self, max_fr):
+        '''
+        returns a normalized unitless measure of firing rates between [0,1].
+        max_fr: maximum firing rate
+
+        computes a rectified linear transfer function
+        '''
+        max_rate = float(max_fr)
+        fr = self.get_firing_rates().copy()
+        fr[fr>max_rate] = max_rate
+        fr /= max_rate
+        return fr
+
     def getvalues(self):
         '''
         return the values of the recording
         '''
         return self.recording
+
+    def __len__(self):
+        return len(self.neuron_group)
