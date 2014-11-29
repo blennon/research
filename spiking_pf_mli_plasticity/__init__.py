@@ -4,3 +4,4 @@ from util import *
 from learning import *
 from stimulus import *
 from figure_plots import *
+from exper_util import *

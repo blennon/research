@@ -19,7 +19,7 @@ def synapse_inds(neuron_inds, synapses, neuron_inds_position='pre'):
     sort_inds = argsort(syns_inds)
     return syns_inds[sort_inds], neuron_inds[sort_inds]
 
-def update_weights(S_GR_MLI, GR_R, MLI_R, GR_max=500*Hz, MLI_max=150*Hz, beta=.0015, alpha=1.):
+def update_weights(S_GR_MLI, GR_R, MLI_R, GR_max=500*Hz, MLI_max=150*Hz, beta=.001, alpha=1.):
     '''
     S_GR_MLI: synapses object between GR and MLI NeuronGroups
     GR_R: RateMonitor for GRs

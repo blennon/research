@@ -1,7 +1,6 @@
 __author__ = 'bill'
 from brian import *
 
-
 @check_units(mean_time=second)
 def switch_prob(mean_time, dt):
     '''
