@@ -7,7 +7,7 @@ import datetime
 def mkdir_p(path):
     '''
     recursively create directories.
-    
+
     credit: tzot, Craig Ringer
     from: http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
     '''

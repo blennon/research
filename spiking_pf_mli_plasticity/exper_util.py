@@ -13,12 +13,13 @@ def setup_monitors(GR, MLI, S_GR_MLI):
     W = StateMonitor(S_GR_MLI,'v',record=True, clock=record_clock)
     return GR_S, GR_R, MLI_V, MLI_S, MLI_R, W
 
-def setup_isolated_mli_net(N_GR, initial_weights, pf_rates):
+def setup_isolated_mli_net(N_GR, initial_weights, pf_rates, wmin):
     '''
     sets up the network consisting of a single MLI and GR inputs
     :param N_GR: number of granule cells
     :param initial_weights: array, initial weights for PF-MLI synapses
     :param pf_rates: a function that returns the firing rates of GRs as a function of time
+    :param wmin: the minimum weight value allowed for PF-MLI synapses, [0,1)
     :return: GR neuron group, MLI neuron group, GR-MLI synapses object
     '''
     GR = PoissonGroup(N_GR,rates=pf_rates)
@@ -27,6 +28,7 @@ def setup_isolated_mli_net(N_GR, initial_weights, pf_rates):
                         v:1''',pre='g_ampa_fast+=MLI.g_ampa_*v; g_ampa_slow+=MLI.g_ampa_*v; g_nmda+=MLI.g_nmda_*v')
     S_GR_MLI[:,:] = 1
     S_GR_MLI.w[:,:] = initial_weights
+    S_GR_MLI.v[:,:] = wmin + (1-wmin)*S_GR_MLI.w[:,:]
     return GR, MLI, S_GR_MLI
 
 def build_pf_rates_func(eq_time, trial_time, N_GR, base_rate, stim_rate, stim_len):

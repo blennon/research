@@ -62,12 +62,26 @@ def plot_pf_mli_w_fig(MLI_V,MLI_S,MLI_R,GR_R,W,fig,defaultclock,xmax=None):
     return ax1, ax2, ax3, ax4
 
 def plot_weights_by_trial(fig, W, trial_len, trial_start_time, dt):
+    '''
+    Plot the value of the weight at the end of each trial. Also show
+    the starting weight value as the 0th trial (i.e. during equilibrium
+    period).
+
+    fig: matplotlib figure object
+    W: weight monitor object
+    trial_len: duration of each trial in seconds
+    trial_start_time: time when the first
+    '''
+    # style
     sns.set_style("whitegrid")
     sns.set_context("poster")
     ax = fig.add_subplot(111)
-    start_ind = int(trial_start_time/dt)-1
+
+    start_ind = int(trial_start_time/dt)
+    # use the first value of each trial as the value at end of previous trial
     wt = W.getvalues()[:,start_ind:][:,::int(trial_len/dt)]
-    trials = range(0,1+W.getvalues().shape[1]/int(trial_len/dt)-int(trial_start_time))
+    wt = hstack((wt,W.getvalues()[:,-1][...,None])) # this adds the last value of the last trial to be the end value of last trial
+    trials = range(wt.shape[1])
     sns.tsplot(wt, time=trials, ci=100, color='#0A835B',ax=ax, linewidth=3)
     ax.set_ylabel('Synaptic Weight', fontsize=20)
     ax.tick_params(labelsize=16)
