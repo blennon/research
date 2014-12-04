@@ -63,7 +63,7 @@ class MLIGroup(AbstractNeuronGroup):
         g_ampa = alpha_ampa_fast*g_ampa_fast + alpha_ampa_slow*g_ampa_slow : nS
 
         # NMDARs and spillover neurotransmitter (n) availability
-        dg_nmda/dt = -g_nmda/tau_nmda_decay + (n**2)*(1-g_nmda)/tau_nmda_rise : 1
+        dg_nmda/dt = -g_nmda/tau_nmda_decay + log(n+1)*(1-g_nmda)/tau_nmda_rise : 1
         dn/dt = -n/tau_n_decay : 1
         gv_nmda = g_nmda_*g_nmda*(1+exp(-V/(16.13*mV))*(1.2/3.57))**-1 : nS # Voltage gated
 
