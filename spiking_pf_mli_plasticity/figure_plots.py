@@ -6,7 +6,7 @@ from pylab import *
 import seaborn as sns
 
 @check_units(end_time=second)
-def plot_pf_mli_w_fig(MLI_V,MLI_S,MLI_R,GR_R,W,fig,defaultclock,xmax=None):
+def plot_pf_mli_w_fig(MLI_V,MLI_S,MLI_R,GR_R,W,fig,defaultclock,xmax=None,ind=0):
     '''
     :param MLI_V: MLI voltage monitor
     :param MLI_S: MLI spike monitor
@@ -14,7 +14,8 @@ def plot_pf_mli_w_fig(MLI_V,MLI_S,MLI_R,GR_R,W,fig,defaultclock,xmax=None):
     :param GR_R: GR rate monitor
     :param W: synapse weights state monitor
     :param fig: a matplotlib figure object
-    :param end_time:
+    :param xmax: xlim for plotting
+    :param ind: the MLI index to plot, if multiple
     :return: None
     '''
     sns.set_style('white')
@@ -29,7 +30,7 @@ def plot_pf_mli_w_fig(MLI_V,MLI_S,MLI_R,GR_R,W,fig,defaultclock,xmax=None):
     # plot MLI membrane potential trace
     ax1 = fig.add_subplot(gs[0])
     MLI_V.insert_spikes(MLI_S)
-    ax1.plot(T,squeeze(MLI_V.getvalues())*1000, color='#8C2318')
+    ax1.plot(T,squeeze(MLI_V.getvalues()[ind,:])*1000, color='#8C2318')
     ax1.set_xlim(xmax=xmax)
     ax1.tick_params(labelsize=16)
     ax1.set_ylabel('MLI Membrane Potential (mV)', fontsize=16)
@@ -37,7 +38,7 @@ def plot_pf_mli_w_fig(MLI_V,MLI_S,MLI_R,GR_R,W,fig,defaultclock,xmax=None):
 
     # plot MLI firing rate trace
     ax2 = fig.add_subplot(gs[1])
-    ax2.plot(T,MLI_R.getvalues(), color='#8C2318', linewidth=1.5)
+    ax2.plot(T,MLI_R.getvalues()[ind,:], color='#8C2318', linewidth=1.5)
     ax2.set_xlim(xmax=xmax)
     ax2.tick_params(labelsize=16)
     ax2.set_ylabel('MLI Firing Rate (Hz)', fontsize=16)
@@ -45,14 +46,14 @@ def plot_pf_mli_w_fig(MLI_V,MLI_S,MLI_R,GR_R,W,fig,defaultclock,xmax=None):
 
     # Overlay plot of GR firing rate and synapse weight
     ax3 = fig.add_subplot(gs[2])
-    gr_frs = squeeze(GR_R.getvalues())
+    gr_frs = squeeze(GR_R.getvalues()[ind,:])
     ax3.plot(T,gr_frs, color='#0B486B')
     ax3.set_ylabel('Superimposed GR Firing Rates (Hz)', color='#0B486B', fontsize=20)
     ax3.tick_params(labelsize=16)
     ax3.spines['top'].set_visible(False)
 
     ax4 = ax3.twinx()
-    ax4.plot(T,mean(W.getvalues(),axis=0), color='#0A835B', linewidth=4.)
+    ax4.plot(T,mean(W.getvalues()[W.P.synapses_post[ind],:],axis=0), color='#0A835B', linewidth=4.)
     ax4.set_ylabel('Mean Synaptic Weight', color='#0A835B', fontsize=20)
     ax4.tick_params(labelsize=16)
     ax4.set_xlim(xmax=end_time)

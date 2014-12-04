@@ -19,11 +19,12 @@ def synapse_inds(neuron_inds, synapses, neuron_inds_position='pre'):
     sort_inds = argsort(syns_inds)
     return syns_inds[sort_inds], neuron_inds[sort_inds]
 
-def update_weights(S_GR_MLI, GR_R, MLI_R, GR_max=500*Hz, MLI_max=150*Hz, beta=.001, alpha=1.):
+def update_weights(S_GR_MLI, GR_R, MLI_R, wmin, GR_max=500*Hz, MLI_max=150*Hz, beta=.001, alpha=1.):
     '''
     S_GR_MLI: synapses object between GR and MLI NeuronGroups
     GR_R: RateMonitor for GRs
     MLI_R: RateMonitor for MLIs
+    wmin: minimum weight value
     GR_max: maximum firing rate for GRs to compute normalized firing rate
     MLI_max: maximum firing rate for MLIs to compute normalized firing rate
     beta: constant learning rate parameter
@@ -34,3 +35,4 @@ def update_weights(S_GR_MLI, GR_R, MLI_R, GR_max=500*Hz, MLI_max=150*Hz, beta=.0
     mli_fr = MLI_R.get_normalized_firing_rates(MLI_max)
     gr_fr = GR_R.get_normalized_firing_rates(GR_max)
     S_GR_MLI.w[:,:] += beta*gr_fr[pre_inds]*(mli_fr[post_inds] - alpha*S_GR_MLI.w[:,:])
+    S_GR_MLI.v[:,:] = wmin + (1-wmin)*S_GR_MLI.w[:,:]

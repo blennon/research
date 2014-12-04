@@ -24,9 +24,31 @@ def setup_isolated_mli_net(N_GR, initial_weights, pf_rates, wmin):
     '''
     GR = PoissonGroup(N_GR,rates=pf_rates)
     MLI = MLIGroup(1)
+    #S_GR_MLI = Synapses(GR,MLI,model='''w:1
+    #                    v:1''',pre='g_ampa_fast+=MLI.g_ampa_*v; g_ampa_slow+=MLI.g_ampa_*v; g_nmda+=MLI.g_nmda_*v')
     S_GR_MLI = Synapses(GR,MLI,model='''w:1
-                        v:1''',pre='g_ampa_fast+=MLI.g_ampa_*v; g_ampa_slow+=MLI.g_ampa_*v; g_nmda+=MLI.g_nmda_*v')
+                        v:1''',pre='g_ampa_fast+=MLI.g_ampa_*v; g_ampa_slow+=MLI.g_ampa_*v; n+=1')
     S_GR_MLI[:,:] = 1
+    S_GR_MLI.w[:,:] = initial_weights
+    S_GR_MLI.v[:,:] = wmin + (1-wmin)*S_GR_MLI.w[:,:]
+    return GR, MLI, S_GR_MLI
+
+def setup_independent_isolated_mli_nets(N_GR, initial_weights, pf_rates, wmin):
+    '''
+    sets up several PF-MLI networks in parallel for simulation. I.e. N_GR=N_MLI
+    and one PF uniquely contacts one MLI (no crossover). Thus, these are independent
+    experiments
+    :param N_GR: number of granule cells -- and number of MLIs
+    :param initial_weights: array, initial weights for PF-MLI synapses
+    :param pf_rates: a function that returns the firing rates of GRs as a function of time
+    :param wmin: the minimum weight value allowed for PF-MLI synapses, [0,1)
+    :return: GR neuron group, MLI neuron group, GR-MLI synapses object
+    '''
+    GR = PoissonGroup(N_GR,rates=pf_rates)
+    MLI = MLIGroup(N_GR)
+    S_GR_MLI = Synapses(GR,MLI,model='''w:1
+                        v:1''',pre='g_ampa_fast+=MLI.g_ampa_*v; g_ampa_slow+=MLI.g_ampa_*v; n+=1')
+    S_GR_MLI.connect_one_to_one()
     S_GR_MLI.w[:,:] = initial_weights
     S_GR_MLI.v[:,:] = wmin + (1-wmin)*S_GR_MLI.w[:,:]
     return GR, MLI, S_GR_MLI

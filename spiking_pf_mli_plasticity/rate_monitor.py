@@ -86,7 +86,7 @@ class RealTimeRateMonitor(SpikeMonitor):
         '''
         return the values of the recording
         '''
-        return self.recording
+        return vstack(self.recording).T
 
     def __len__(self):
         return len(self.neuron_group)
