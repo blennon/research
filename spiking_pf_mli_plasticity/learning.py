@@ -56,3 +56,44 @@ def update_weights(S_GR_MLI, GR_R, MLI_R, wmin, GR_max=500*Hz, MLI_max=150*Hz, b
     gr_fr = GR_R.get_normalized_firing_rates(GR_max)
     S_GR_MLI.w[:,:] += beta*gr_fr[pre_inds]*(mli_fr[post_inds] - alpha*S_GR_MLI.w[:,:])
     S_GR_MLI.v[:,:] = wmin + (1-wmin)*S_GR_MLI.w[:,:]
+
+def update_weights_cf(S_GR_MLI, S_CF_MLI, GR_R, MLI_R, CF_R, wmin, alpha0=.5, alpha_thresh=.8,
+                      gr_thresh=.1, CF_max=10*Hz, GR_max=500*Hz, MLI_max=150*Hz, beta=.001):
+    '''
+    Implements the full learning rule for PF-MLI synapses which is dependent on CF input.
+
+    S_GR_MLI: synapses object between GR and MLI NeuronGroups
+    S_CF_MLI: synapses object between CF and MLI NeuronGroups
+    GR_R: RateMonitor for GRs
+    MLI_R: RateMonitor for MLIs
+    CF_R: RateMonitor for CFs
+    wmin: minimum weight value for electrically active synapses
+    alpha0: minimum value for alpha
+    alpha_thresh: threshold value of alpha used for activating silent PF-MLI synapses
+    gr_thresh: threshold value of GR firing rates used for activating silent PF-MLI synapses
+    CF_max: maximum CF firing rate to compute normalized firing rate
+    GR_max: maximum firing rate for GRs to compute normalized firing rate
+    MLI_max: maximum firing rate for MLIs to compute normalized firing rate
+    beta: constant learning rate parameter
+    '''
+    syn_inds, pre_inds = synapse_inds(range(len(GR_R)),S_GR_MLI,'pre')
+    _, post_inds = synapse_inds(range(len(MLI_R)),S_GR_MLI,'post')
+    mli_fr = MLI_R.get_normalized_firing_rates(MLI_max)
+    gr_fr = GR_R.get_normalized_firing_rates(GR_max)
+    alpha = compute_alpha(CF_R, S_CF_MLI, CF_max, alpha0)
+
+    # CF-PF gated LTP
+    # for weights == 0 and CF inputs > 0 (use alpha as surrogate) and PF inputs > 0
+    ind = (S_GR_MLI.v[:,:] == 0.) & (alpha[post_inds] < alpha_thresh) & (gr_fr[pre_inds] > gr_thresh)
+    S_GR_MLI.w[ind] = .1*wmin
+
+    # GSD
+    # for weights > 0
+    ind = S_GR_MLI.w[:,:] > 0
+    S_GR_MLI.w[ind] += beta*gr_fr[pre_inds][ind]*(mli_fr[post_inds][ind] - alpha[post_inds][ind]*S_GR_MLI.w[ind])
+
+    # set minimum weights
+    S_GR_MLI.v[ind] = wmin + (1-wmin)*S_GR_MLI.w[ind]
+    ind = S_GR_MLI.w[:,:] < .05*wmin
+    S_GR_MLI.w[ind] = 0.
+    S_GR_MLI.v[ind] = 0.
