@@ -129,7 +129,9 @@ def setup_mli_net(pf_rates, cf_rates, init_pf_mli_w= '.05+.2*rand()', wmin=.2, N
                         v:1''',pre='g_ampa_fast+=MLI.g_ampa_*v; g_ampa_slow+=MLI.g_ampa_*v; n+=1')
     S_GR_MLI = connect_gr_mli(S_GR_MLI,N_MLI_groups,N_MLI_per_group,GR_cluster_width,N_GR_clusters,init_pf_mli_w)
     ind = S_GR_MLI.w[:,:] > 0
-    S_GR_MLI.v[ind] = wmin + (1-wmin)*S_GR_MLI.w[ind]
+    v_tmp =  S_GR_MLI.v[:,:]
+    v_tmp[ind] = wmin + (1-wmin)*S_GR_MLI.w[:,:][ind]
+    S_GR_MLI.v[:,:] = v_tmp
 
     # CF-MLI Synapses
     u,tau = .19, 2.1*second

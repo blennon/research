@@ -85,15 +85,22 @@ def update_weights_cf(S_GR_MLI, S_CF_MLI, GR_R, MLI_R, CF_R, wmin, alpha0=.5, al
     # CF-PF gated LTP
     # for weights == 0 and CF inputs > 0 (use alpha as surrogate) and PF inputs > 0
     ind = (S_GR_MLI.v[:,:] == 0.) & (alpha[post_inds] < alpha_thresh) & (gr_fr[pre_inds] > gr_thresh)
-    S_GR_MLI.w[ind] = .1*wmin
+    w_tmp = S_GR_MLI.w[:,:]
+    w_tmp[ind] = .1*wmin
+    #S_GR_MLI.w[ind] = .1*wmin
 
     # GSD
     # for weights > 0
     ind = S_GR_MLI.w[:,:] > 0
-    S_GR_MLI.w[ind] += beta*gr_fr[pre_inds][ind]*(mli_fr[post_inds][ind] - alpha[post_inds][ind]*S_GR_MLI.w[ind])
+    w_tmp[ind] += beta*gr_fr[pre_inds][ind]*(mli_fr[post_inds][ind] - alpha[post_inds][ind]*w_tmp[ind])
 
     # set minimum weights
-    S_GR_MLI.v[ind] = wmin + (1-wmin)*S_GR_MLI.w[ind]
-    ind = S_GR_MLI.w[:,:] < .05*wmin
-    S_GR_MLI.w[ind] = 0.
-    S_GR_MLI.v[ind] = 0.
+    v_tmp = S_GR_MLI.v[:,:]
+    v_tmp[ind] = wmin + (1-wmin)*w_tmp[ind]
+    ind = w_tmp < .05*wmin
+    w_tmp[ind] = 0.
+    v_tmp[ind] = 0.
+
+    # Assign temporary variable to weights
+    S_GR_MLI.w[:,:] = w_tmp
+    S_GR_MLI.v[:,:] = v_tmp
