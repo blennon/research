@@ -58,7 +58,7 @@ def update_weights(S_GR_MLI, GR_R, MLI_R, wmin, GR_max=500*Hz, MLI_max=150*Hz, b
     S_GR_MLI.v[:,:] = wmin + (1-wmin)*S_GR_MLI.w[:,:]
 
 def update_weights_cf(S_GR_MLI, S_CF_MLI, GR_R, MLI_R, CF_R, wmin, alpha0=.5, alpha_thresh=.8,
-                      gr_thresh=.1, CF_max=10*Hz, GR_max=500*Hz, MLI_max=150*Hz, beta=.001):
+                      gr_thresh=.1, CF_max=10*Hz, GR_max=500*Hz, MLI_max=250*Hz, beta=.001):
     '''
     Implements the full learning rule for PF-MLI synapses which is dependent on CF input.
 
@@ -94,7 +94,8 @@ def update_weights_cf(S_GR_MLI, S_CF_MLI, GR_R, MLI_R, CF_R, wmin, alpha0=.5, al
     ind = S_GR_MLI.w[:,:] > 0
     w_tmp[ind] += beta*gr_fr[pre_inds][ind]*(mli_fr[post_inds][ind] - alpha[post_inds][ind]*w_tmp[ind])
 
-    # set minimum weights
+    # set minimum weights and maximum weights (due to alpha)
+    w_tmp[w_tmp > 1.] = 1.
     v_tmp = S_GR_MLI.v[:,:]
     v_tmp[ind] = wmin + (1-wmin)*w_tmp[ind]
     ind = w_tmp < .05*wmin
