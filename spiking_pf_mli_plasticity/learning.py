@@ -20,7 +20,7 @@ def synapse_inds(neuron_inds, synapses, neuron_inds_position='pre'):
     sort_inds = argsort(syns_inds)
     return syns_inds[sort_inds], neuron_inds[sort_inds]
 
-def compute_alpha(CF_R, S_CF_MLI, CF_max=10*Hz, alpha0=.5):
+def compute_alpha(CF_R, S_CF_MLI, CF_max=10*Hz, alpha0=.5, alpha1=1.):
     '''
     computes 'alpha' in the learning equation for PF-MLI weight updates for each MLI.
     First computes an array which measures the total glutamate spillover from CFs onto each MLI.
@@ -37,7 +37,7 @@ def compute_alpha(CF_R, S_CF_MLI, CF_max=10*Hz, alpha0=.5):
     cf_fr = CF_R.get_normalized_firing_rates(CF_max)
     C = ceil(nan_to_num(S_CF_MLI.w.to_matrix()))
     spillover = minimum(dot(C.T, cf_fr),1.)
-    return 1. - (1.-alpha0)*spillover
+    return alpha1 - (alpha1-alpha0)*spillover
 
 def update_weights(S_GR_MLI, GR_R, MLI_R, wmin, GR_max=500*Hz, MLI_max=150*Hz, beta=.001, alpha=1.):
     '''
@@ -57,8 +57,8 @@ def update_weights(S_GR_MLI, GR_R, MLI_R, wmin, GR_max=500*Hz, MLI_max=150*Hz, b
     S_GR_MLI.w[:,:] += beta*gr_fr[pre_inds]*(mli_fr[post_inds] - alpha*S_GR_MLI.w[:,:])
     S_GR_MLI.v[:,:] = wmin + (1-wmin)*S_GR_MLI.w[:,:]
 
-def update_weights_cf(S_GR_MLI, S_CF_MLI, GR_R, MLI_R, CF_R, wmin, alpha0=.5, alpha_thresh=.8,
-                      gr_thresh=.1, CF_max=10*Hz, GR_max=500*Hz, MLI_max=250*Hz, beta=.001):
+def update_weights_cf(S_GR_MLI, S_CF_MLI, GR_R, MLI_R, CF_R, wmin, alpha0=.5, alpha1=1., alpha_thresh=.8,
+                      gr_thresh=.1, CF_max=10*Hz, GR_max=500*Hz, MLI_max=150*Hz, beta=.001):
     '''
     Implements the full learning rule for PF-MLI synapses which is dependent on CF input.
 
@@ -80,28 +80,27 @@ def update_weights_cf(S_GR_MLI, S_CF_MLI, GR_R, MLI_R, CF_R, wmin, alpha0=.5, al
     _, post_inds = synapse_inds(range(len(MLI_R)),S_GR_MLI,'post')
     mli_fr = MLI_R.get_normalized_firing_rates(MLI_max)
     gr_fr = GR_R.get_normalized_firing_rates(GR_max)
-    alpha = compute_alpha(CF_R, S_CF_MLI, CF_max, alpha0)
+    alpha = compute_alpha(CF_R, S_CF_MLI, CF_max, alpha0, alpha1)
 
     # CF-PF gated LTP
     # for weights == 0 and CF inputs > 0 (use alpha as surrogate) and PF inputs > 0
-    ind = (S_GR_MLI.v[:,:] == 0.) & (alpha[post_inds] < alpha_thresh) & (gr_fr[pre_inds] > gr_thresh)
-    w_tmp = S_GR_MLI.w[:,:]
+    ind = (S_GR_MLI.v[:] == 0.) & (alpha[post_inds] < alpha_thresh) & (gr_fr[pre_inds] > gr_thresh)
+    w_tmp = S_GR_MLI.w[:]
     w_tmp[ind] = .1*wmin
-    #S_GR_MLI.w[ind] = .1*wmin
 
     # GSD
     # for weights > 0
-    ind = S_GR_MLI.w[:,:] > 0
+    ind = w_tmp > 0
     w_tmp[ind] += beta*gr_fr[pre_inds][ind]*(mli_fr[post_inds][ind] - alpha[post_inds][ind]*w_tmp[ind])
 
     # set minimum weights and maximum weights (due to alpha)
-    w_tmp[w_tmp > 1.] = 1.
-    v_tmp = S_GR_MLI.v[:,:]
+    w_tmp[w_tmp > 1.] = 1. # hard max bound on weights
+    v_tmp = S_GR_MLI.v[:]
     v_tmp[ind] = wmin + (1-wmin)*w_tmp[ind]
     ind = w_tmp < .05*wmin
     w_tmp[ind] = 0.
     v_tmp[ind] = 0.
 
     # Assign temporary variable to weights
-    S_GR_MLI.w[:,:] = w_tmp
-    S_GR_MLI.v[:,:] = v_tmp
+    S_GR_MLI.w[:] = w_tmp
+    S_GR_MLI.v[:] = v_tmp
