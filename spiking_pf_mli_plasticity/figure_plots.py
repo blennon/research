@@ -32,33 +32,37 @@ def plot_pf_mli_w_fig(MLI_V,MLI_S,MLI_R,GR_R,W,fig,defaultclock,xmax=None,ind=0)
     MLI_V.insert_spikes(MLI_S)
     ax1.plot(T,squeeze(MLI_V.getvalues()[ind,:])*1000, color='#8C2318')
     ax1.set_xlim(xmax=xmax)
-    ax1.tick_params(labelsize=16)
-    ax1.set_ylabel('MLI Membrane Potential (mV)', fontsize=16)
+    ax1.tick_params(labelsize=18)
+    ax1.set_ylabel('MLI (mV)', fontsize=20)
     simpleaxis(ax1)
 
     # plot MLI firing rate trace
     ax2 = fig.add_subplot(gs[1])
     ax2.plot(T,MLI_R.getvalues()[ind,:], color='#8C2318', linewidth=1.5)
     ax2.set_xlim(xmax=xmax)
-    ax2.tick_params(labelsize=16)
-    ax2.set_ylabel('MLI Firing Rate (Hz)', fontsize=16)
+    ax2.tick_params(labelsize=18)
+    ax2.set_ylabel('MLI (Hz)', fontsize=20)
     simpleaxis(ax2)
 
     # Overlay plot of GR firing rate and synapse weight
     ax3 = fig.add_subplot(gs[2])
     gr_frs = squeeze(GR_R.getvalues()[ind,:])
     ax3.plot(T,gr_frs, color='#0B486B')
-    ax3.set_ylabel('Superimposed GR Firing Rates (Hz)', color='#0B486B', fontsize=20)
-    ax3.tick_params(labelsize=16)
+    ax3.set_ylabel('GR (Hz)', color='#0B486B', fontsize=20)
+    ax3.tick_params(labelsize=18)
     ax3.spines['top'].set_visible(False)
 
     ax4 = ax3.twinx()
     ax4.plot(T,mean(W.getvalues()[W.P.synapses_post[ind],:],axis=0), color='#0A835B', linewidth=4.)
-    ax4.set_ylabel('Mean Synaptic Weight', color='#0A835B', fontsize=20)
-    ax4.tick_params(labelsize=16)
+    label = 'Synaptic Weight'
+    if W.P.synapses_post[ind].shape[0] > 1:
+        label = 'Mean Synaptic Weight'
+    ax4.set_ylabel(label, color='#0A835B', fontsize=20)
+    ax4.tick_params(labelsize=18)
     ax4.set_xlim(xmax=end_time)
     ax3.set_xlabel('time (s)', fontsize=20)
     ax3.set_xlim(xmax=xmax)
+
 
     return ax1, ax2, ax3, ax4
 
